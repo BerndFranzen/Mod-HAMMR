@@ -40,8 +40,8 @@ What does that data mean?
 =========================
 Let's take the first line from the sample that I uploaded as well (Supersix-Chars.htm):
 
-    Name                Power Gear  Speed MMScore Mod-Sets      Transmitter       Receiver    Processor         Holo-Array   
-    Jedi Master Kenobi  42292 uzR07 580   150     Health/Speed  27(5)-HE-Offense  32-SP-Speed 26(5)-SP-Defense  23(5)-HE-Crit. Damage
+    Name                Power Gear  Speed MMScore Mod-Sets      Transmitter       Receiver    Processor         Holo-Array            Data-Bus        Multiplexer
+    Jedi Master Kenobi  42292 uzR07 580   150     Health/Speed  27(5)-HE-Offense  32-SP-Speed 26(5)-SP-Defense  23(5)-HE-Crit. Damage 23(5)-SP-Health 26(5)-SP-Offense
     
 
 PREREQUISITES
