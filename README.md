@@ -1,5 +1,17 @@
 # Mod-HAMMR
-How Are My Mods Really? Mod-HAMMR will tell you... and more about your SWGOH roster
+Standard conversation that you will hear between SWGOH players each an every day:
+A: I
+  - cannot beat Tier 3.
+  - always lose in GA.
+  - struggle with the next fight.
+B: Yeah, maybe your mods ain't good enough.
+A: Really?
+B: Sure, it's always often the mods, so as I sayd, they may not be good enough.
+A: But then I need to know: How Are My Mods Really?
+
+This is where Mod-HAMMR (How Are My Mods Really) my be helpflu to you. This tool crawls through your SWGOH roster and shows you:
+- All your characters with their gear, power and how they are / should be modded
+- Freely customizeable squads that reflect your squad selection within the game, helping you to keep focus und which chars to improve next
 
 PREREQUISITES
 =============
