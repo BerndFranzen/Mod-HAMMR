@@ -53,7 +53,13 @@ This results in a total possible MMScore of 100. If the score is not reached, th
 
 If a char has reached an MMScore of 100, the rarity of each mod will be evaluated as well as when sclicing a mod from 5A to 6E, both, primary and all secondary get a status boost which increases the mod's value.
 - For each mod with a rarity of 6* extra 5 points are added (max. 30)
+- If all mods have been sliced to 6A extra 20 points are added
 
-This results in a total possible MMScore of 130. All 6* mods equipped are printed in BOLD to highlight them and show you were you still can improve.
+This results in a total possible MMScore of 150. All 6* mods equipped are printed in BOLD to highlight them and show you were you still can improve.
+
+So there are basically 3 levels to achieve:
+- 100 - all mods follow the current meta for this char and every mod has Speed on either primary or secondary attribute
+- 130 - all mods have additionally been sliced to 6*
+- 150 - all mods have additionally been sliced to 6A
 
 NOTE: Mods below 5* and Level 15 are filtered and regarded as not present.
