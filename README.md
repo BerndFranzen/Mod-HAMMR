@@ -30,6 +30,8 @@ Replace the allycode in the Config-Accounts.csv with your allycode.
 
 Customize the Config-Teams.csv if needed so that if reflects that squads as you actually play them.
 
+If needed, unblock the PS1 file with the Unblock-File cmdlet (see below).
+
 Start the script in Microsoft Powershell.
 
 What information will you get?
