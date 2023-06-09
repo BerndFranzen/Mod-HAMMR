@@ -17,7 +17,21 @@ A: But then I need to know: How Are My Mods Really?
 
 This is where Mod-HAMMR (How Are My Mods Really) my be helpflu to you. This tool crawls through your SWGOH roster and shows you:
 - All your characters with their gear, power and how they are / should be modded
-- Freely customizeable squads that reflect your squad selection within the game, helping you to keep focus und which chars to improve next
+- Freely customizeable squads that reflect your squad selection within the game, helping you to keep focus und which chars to improve next.
+
+How to start
+============
+Download these 3 files to your Windows/Mac/Linux machine:
+- Mod-HAMMR.ps1
+- Config-Accounts.csv
+- Config-Teams.csv
+
+Replace the allycode in the Config-Accounts.csv with your allycode.
+
+Start the script.
+
+What information will you get?
+==============================
 
 PREREQUISITES
 =============
