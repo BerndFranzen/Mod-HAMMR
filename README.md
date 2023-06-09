@@ -41,7 +41,7 @@ What does that data mean?
 Let's take the first line from the sample that I uploaded as well (Supersix-Chars.htm):
 
     Name                Power Gear
-    Jedi Master Kenobi
+    Jedi Master Kenobi  42292
     
 
 PREREQUISITES
