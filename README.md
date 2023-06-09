@@ -64,9 +64,8 @@ PREREQUISITES
 - Your allycode registered and synched on swgoh.gg
 - Your allycode(s) updated in the CONFIG-Accounts.csv file
 
-
 MMSCore
--------
+=======
 What is the MMScore? the MMScore is intended to help you to learn from the best. It pulls all data from https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/ and compares the character's mods against this meta list and calculates the score as follows:
 - Matching mod set 20 points for 4-mod sets (e.g. Speed) and 10 points for 2-mod sets (e.g. Health) (max. 30)
 - Matching primary attribute 5 points per mod (max. 30)
@@ -87,3 +86,28 @@ So there are basically 3 levels to achieve:
 - 150 - all mods have additionally been sliced to 6A
 
 NOTE: Mods below 5* and Level 15 are filtered and regarded as not present.
+
+Q&A
+===
+Q: How can I create custom teams?
+A: Just edit the CONIFG-Teams.csv file and add whatever you want to have an analysis for. You need to add the DefId as specified in 
+   the game itself as well as the display name you want to see in the list.
+
+Q: How do I know what is the DefId for a certain char?
+A: On each run, the script will create a file called GAME-NameMapping.htm that shows the display name and the corresponding
+   DefId of each character and ship
+
+Q: In the CONFIG-Accounts.csv there are 2 allycodes, do I have to provide 2 allycodes as well?
+A: No, that's only required if you're also doing statistics for a partner or want to find out more about your current GA opponent.
+
+Q: Why does an MMScore of a character drop although I modded according to the recommendations?
+A: Because it's Meta and this is constantly changing so you may need to re-mod from time to time.
+
+Q: When I try to run the script on Windows I get an error preventing the execution because it's not signed.
+A: You can exempt the script with the command "Unblock-File <script-name>".
+
+Q: I have upgrades my chars but why do the pages still show the old values?
+A: swgoh.gg only updates the stats every 24 hours. You can force a manual update once every 24 hours or become a "Patron" at swgoh.gg 
+   for a small fee (€3.50/month), which reduces the automatic update intervall to 1 hour and grants you 5 manual refreshes per day.
+
+
