@@ -40,7 +40,7 @@ What does that data mean?
 =========================
 Let's take the first line from the sample that I uploaded as well (Supersix-Chars.htm):
 
-    Name  Power Gear
+    Name                Power Gear
     Jedi Master Kenobi
     
 
