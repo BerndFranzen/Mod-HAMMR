@@ -91,14 +91,12 @@ NOTE: Mods below 5* and Level 15 are filtered and regarded as not present.
 
 Q&A
 ===
-Q: How can I create custom teams?
-
-A: Just edit the CONIFG-Teams.csv file and add whatever you want to have an analysis for. You need to add the DefId as specified in 
+- Q: How can I create custom teams?
+- A: Just edit the CONIFG-Teams.csv file and add whatever you want to have an analysis for. You need to add the DefId as specified in 
    the game itself.
 
-Q: How do I know what is the DefId for a certain char?
-
-A: On each run, the script will create a file called GAME-NameMapping.htm that shows the display name and the corresponding
+- Q: How do I know what is the DefId for a certain char?
+- A: On each run, the script will create a file called GAME-NameMapping.htm that shows the display name and the corresponding
    DefId of each character and ship
 
 Q: In the CONFIG-Accounts.csv there are 2 allycodes, do I have to provide 2 allycodes as well?
