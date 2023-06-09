@@ -1,12 +1,17 @@
 # Mod-HAMMR
 Standard conversation that you will hear between SWGOH players each an every day:
+
 A: I
   - cannot beat Tier 3.
   - always lose in GA.
   - struggle with the next fight.
+
 B: Yeah, maybe your mods ain't good enough.
+
 A: Really?
+
 B: Sure, it's always often the mods, so as I sayd, they may not be good enough.
+
 A: But then I need to know: How Are My Mods Really?
 
 This is where Mod-HAMMR (How Are My Mods Really) my be helpflu to you. This tool crawls through your SWGOH roster and shows you:
