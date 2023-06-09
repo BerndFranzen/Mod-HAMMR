@@ -28,6 +28,8 @@ Download these 3 files to your Windows/Mac/Linux machine:
 
 Replace the allycode in the Config-Accounts.csv with your allycode.
 
+Customize the Config-Teams.csv if needed so that if reflects that squads as you actually play them.
+
 Start the script in Microsoft Powershell.
 
 What information will you get?
