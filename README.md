@@ -10,9 +10,10 @@ B: Yeah, maybe your mods ain't good enough.
 
 A: Really?
 
-B: Sure, it's always often the mods, so as I sayd, they may not be good enough.
+B: Sure, it's  often the mods, so as I sayd, they may not be good enough.
 
 A: But then I need to know: How Are My Mods Really?
+
 
 This is where Mod-HAMMR (How Are My Mods Really) my be helpflu to you. This tool crawls through your SWGOH roster and shows you:
 - All your characters with their gear, power and how they are / should be modded
