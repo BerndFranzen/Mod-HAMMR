@@ -40,8 +40,8 @@ What does that data mean?
 =========================
 Let's take the first line from the sample that I uploaded as well (Supersix-Chars.htm):
 
-    Name                Power Gear
-    Jedi Master Kenobi  42292
+    Name                Power Gear  MMScore
+    Jedi Master Kenobi  42292 uzR07 580
     
 
 PREREQUISITES
