@@ -48,8 +48,8 @@ Gear          uzR07
 
 580	  150	    Health/Speed  27(5)-HE-Offense	32-SP-Speed	26(5)-SP-Defense	23(5)-HE-Crit. Damage	23(5)-SP-Health	26(5)-SP-Offense
 
-	Gear	Speed	MMScore	Mod-Sets	    Transmitter	      Receiver    Processor         Holo-Array            Data-Bus        Multiplexer
-	uzR07
+Name	Gear	Speed	MMScore	Mod-Sets	    Transmitter	      Receiver    Processor         Holo-Array            Data-Bus        Multiplexer
+Jedi Master Kenobi	uzR07
 
 PREREQUISITES
 =============
