@@ -40,25 +40,9 @@ What does that data mean?
 =========================
 Let's take the first line from the sample that I uploaded as well (Supersix-Chars.htm):
 
-Name          Jedi Master Kenobi	
-
-Power         42292
-
-Gear          uzR07	  
-
-580	  150	    Health/Speed  27(5)-HE-Offense	32-SP-Speed	26(5)-SP-Defense	23(5)-HE-Crit. Damage	23(5)-SP-Health	26(5)-SP-Offense
-
-  Name	              Gear	Speed	MMScore	Mod-Sets	    Transmitter	      Receiver    Processor         Holo-Array            Data-Bus        Multiplexer
-Jedi Master Kenobi	uzR07
-
-Name	Power	Gear	Speed	MMScore	Mod-Sets	Transmitter
-(Square)	Receiver
-(Arrow)	Processor
-(Diamond)	Holo-Array
-(Triangle)	Data-Bus
-(Circle)	Multiplexer
-(Cross)
-Jedi Master Kenobi	42292	uzR07	580	150	Health / Speed	27 (5) - HE - Offense	32 - SP - Speed	26 (5) - SP - Defense	23 (5) - HE - Crit. Damage	23 (5) - SP - Health	26 (5) - SP - Offense
+    Name  Power Gear
+    
+    
 
 PREREQUISITES
 =============
