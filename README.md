@@ -10,7 +10,7 @@ B: Yeah, maybe your mods ain't good enough.
 
 A: Really?
 
-B: Sure, it's  often the mods, so as I sayd, they may not be good enough.
+B: Sure, it's  often the mods, so as I said, they may not be good enough.
 
 A: But then I need to know: How Are My Mods Really?
 
@@ -28,10 +28,20 @@ Download these 3 files to your Windows/Mac/Linux machine:
 
 Replace the allycode in the Config-Accounts.csv with your allycode.
 
-Start the script.
+Start the script in Microsoft Powershell.
 
 What information will you get?
 ==============================
+Basically the tool will drop 2 HTML files with your player name:
+- Chars - listing all chars that you have and that have been leveled to Lvl 50 or higher
+- Teams - showing the chars grouped in squads that can math the squads you defined within the game.
+
+What does that data mean?
+=========================
+
+
+Name	              Power	Gear	Speed	MMScore	Mod-Sets	    Transmitter	      Receiver    Processor         Holo-Array            Data-Bus        Multiplexer
+Jedi Master Kenobi	42292	R07	  580	  150	    Health/Speed  27(5)-HE-Offense	32-SP-Speed	26(5)-SP-Defense	23(5)-HE-Crit. Damage	23(5)-SP-Health	26(5)-SP-Offense
 
 PREREQUISITES
 =============
