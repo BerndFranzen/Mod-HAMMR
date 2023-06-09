@@ -15,7 +15,7 @@ B: Sure, it's  often the mods, so as I said, they may not be good enough.
 A: But then I need to know: How Are My Mods Really?
 
 
-This is where Mod-HAMMR (How Are My Mods Really) my be helpflu to you. This tool crawls through your SWGOH roster and shows you:
+This is where Mod-HAMMR (How Are My Mods Really) my be helpful to you. This tool crawls through your SWGOH roster and shows you:
 - All your characters with their gear, power and how they are / should be modded
 - Freely customizeable squads that reflect your squad selection within the game, helping you to keep focus und which chars to improve next.
 
