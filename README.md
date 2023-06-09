@@ -93,7 +93,7 @@ Q&A
 ===
 Q: How can I create custom teams?
 A: Just edit the CONIFG-Teams.csv file and add whatever you want to have an analysis for. You need to add the DefId as specified in 
-   the game itself as well as the display name you want to see in the list.
+   the game itself.
 
 Q: How do I know what is the DefId for a certain char?
 A: On each run, the script will create a file called GAME-NameMapping.htm that shows the display name and the corresponding
