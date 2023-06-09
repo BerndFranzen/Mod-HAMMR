@@ -81,7 +81,7 @@ CheckPrerequisites
 
 $AccountInfo = Import-Csv ".\CONFIG-Accounts.csv" -Delimiter ";"
 $TeamList = Import-Csv ".\CONFIG-Teams.csv" -delimiter ";" 
-$FleetList = Import-Csv ".\CONFIG-Fleets.csv" -delimiter ";" | Sort-Object FleetName
+# $FleetList = Import-Csv ".\CONFIG-Fleets.csv" -delimiter ";" | Sort-Object FleetName
 
 Write-Host "Loading support data" -ForegroundColor Green
 
