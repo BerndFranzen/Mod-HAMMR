@@ -95,6 +95,11 @@ So there are basically 3 levels to achieve:
 
 NOTE: Mods below 5* and Level 15 are filtered and regarded as not present.
 
+Contact
+=======
+Allycode  832-123-322
+Mail      swgoh-guildstats@outlook.com
+
 Q&A
 ===
 Q: How can I create custom teams?
