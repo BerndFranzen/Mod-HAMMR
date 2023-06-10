@@ -65,7 +65,7 @@ function CheckPrerequisites() {
 
     # Check if all prerequisites are met
 
-    # if ($PSVersionTable.PSVersion.ToString() -lt "6.2.0") {Write-Host "ERROR - This script requires Powershell 6.0.0 or higher" -ForegroundColor Red; Break}
+    if ($PSVersionTable.PSVersion.ToString() -lt "6.2.0") {Write-Host "ERROR - This script requires Powershell 6.0.0 or higher" -ForegroundColor Red; Break}
     if ((get-Item .\CONFIG-Accounts.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "ERROR - Config file CONFIG-Accounts.csv missing"-ForegroundColor Red; Break}
     if ((get-Item .\CONFIG-Teams.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Teams.csv missing"-ForegroundColor Yellow; Break}
     # if ((get-Item .\CONFIG-Fleets.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Fleets.csv missing"-ForegroundColor Yellow; Break}
@@ -155,7 +155,7 @@ ForEach ($Account in $AccountInfo) {
         $EquippedModsets = $Char.mod_set_ids
         $EquippedMods = $ModList | Where-Object {$_.character -like $Char.base_id}
         $RequiredMods = ($RawMetaList | Where-Object {$_.Character -eq ($Char.name)})
-        $RequiredModSets = $RequiredMods.Sets.Split().Replace("-"," ") | Sort-Object
+        $RequiredModSets = $RequiredMods.Sets.Split().Replace("-"," ").trim() | Sort-Object
 
         if ($RequiredModSets -contains "Offense" -and $EquippedModsets -contains 2) {$MMScore += 20}
         if ($RequiredModSets -contains "Speed" -and $EquippedModsets -contains 4) {$MMScore += 20}
@@ -210,8 +210,8 @@ ForEach ($Account in $AccountInfo) {
                                                         
                     if ($SelectedMod.rarity -gt 5) {$ModTeam.($SlotName) = "BOLD" + $ModTeam.($SlotName)}
                                     
-                } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | ForEach-Object {$_ + " / "}).Replace("Critical","Crit.").trim(" / ")} 
-            } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | ForEach-Object {$_ + " / "}).Replace("Critical","Crit.").trim(" / ")}
+                } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.").trim(" / ")} 
+            } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.").trim(" / ")}
     
 
         }
