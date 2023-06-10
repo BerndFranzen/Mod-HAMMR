@@ -65,7 +65,7 @@ Let's take the first line from the sample that I uploaded as well (Supersix-Char
 
 PREREQUISITES
 =============
-- Microsoft Powershell 6.0.0 or higher (Windows, Mac, Linux)
+- Microsoft Powershell 6.2 or higher (Windows, Mac, Linux)
 - PSParseHTML Powershell Module (by EvotecIT), installed automatically if not present 
 - Your allycode registered and synched on swgoh.gg
 - Your allycode(s) updated in the CONFIG-Accounts.csv file
