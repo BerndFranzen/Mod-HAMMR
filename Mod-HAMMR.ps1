@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 23-23 (c)2023 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 23-23a (c)2023 SuperSix/Schattenlegion
 
 #>
 
@@ -60,12 +60,12 @@ $header = @"
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 23-23 (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 23-23a (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
 
-    if ($PSVersionTable.Version -lt 6.0.0) {Write-Host "ERROR - This script requires Powershell 6.0.0 or higher" -ForegroundColor Red; Break}
+    # if ($PSVersionTable.PSVersion.ToString() -lt "6.2.0") {Write-Host "ERROR - This script requires Powershell 6.0.0 or higher" -ForegroundColor Red; Break}
     if ((get-Item .\CONFIG-Accounts.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "ERROR - Config file CONFIG-Accounts.csv missing"-ForegroundColor Red; Break}
     if ((get-Item .\CONFIG-Teams.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Teams.csv missing"-ForegroundColor Yellow; Break}
     # if ((get-Item .\CONFIG-Fleets.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Fleets.csv missing"-ForegroundColor Yellow; Break}
@@ -110,7 +110,7 @@ $RawMetaInfo = $RawMetaInfo.Replace('" data-container="body"></div>','')
 
 $RawMetaList = $RawMetaInfo | ConvertFrom-HtmlTable 
 
-$ModTeamObj=[ordered]@{Name="";"Power"=0;"Gear"="";"Speed"=0;"MMScore"=0;"Mod-Sets"="";"Transmitter"="";"Receiver"="";"Processor"="";"Holo-Array"="";"Data-Bus"="";"Multiplexer"=""}
+$ModTeamObj=[ordered]@{Name="";"Power"=0;"Gear"="";"Speed"="";"MMScore"=0;"Mod-Sets"="";"Transmitter"="";"Receiver"="";"Processor"="";"Holo-Array"="";"Data-Bus"="";"Multiplexer"=""}
 
 # Start guild analysis
 
@@ -122,7 +122,7 @@ ForEach ($Account in $AccountInfo) {
 
     Write-Host "Loading player data for allycode",$GuildAllyCode -foregroundcolor green
 
-    $RosterInfo = (Invoke-WebRequest ("http://api.swgoh.gg/player/" + $GuildAllyCode) -SkipHttpErrorCheck -ErrorAction SilentlyContinue).Content | ConvertFrom-Json
+    $RosterInfo = (Invoke-WebRequest ("http://api.swgoh.gg/player/" + $GuildAllyCode) -ErrorAction SilentlyContinue).Content | ConvertFrom-Json
     
     $ModRoster=@()
     $ModList = $RosterInfo.mods | Where-Object {$_.level -eq 15 -and $_.Rarity -ge 5}
@@ -132,7 +132,7 @@ ForEach ($Account in $AccountInfo) {
 
         $ModTeam = New-Object PSObject -Property $ModTeamObj
         $ModTeam.Name = $Char.Name
-        $ModTeam.Speed = $Char.stats.5
+        $ModTeam.Speed = "{0:0}" -f $Char.stats.5
         $ModTeam.Power = $Char.power
 
         if ($Char.relic_tier -gt 2) {
@@ -210,8 +210,8 @@ ForEach ($Account in $AccountInfo) {
                                                         
                     if ($SelectedMod.rarity -gt 5) {$ModTeam.($SlotName) = "BOLD" + $ModTeam.($SlotName)}
                                     
-                } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | Join-String -Separator " / ").Replace("Critical","Crit.")} 
-            } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | Join-String -Separator " / ").Replace("Critical","Crit.")}
+                } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | ForEach-Object {$_ + " / "}).Replace("Critical","Crit.").trim(" / ")} 
+            } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | ForEach-Object {$_ + " / "}).Replace("Critical","Crit.").trim(" / ")}
     
 
         }
