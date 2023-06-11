@@ -65,7 +65,7 @@ Let's take the first line from the sample that I uploaded as well (Supersix-Char
 And now let's take Nute as another example:
 
     Name        Power Gear  Speed MMScore Mod-Sets      Transmitter       Receiver    Processor         Holo-Array            Data-Bus            Multiplexer
-                                                                (Square)          (Arrow)     (Diamond)         (Triangle)            (Circle)            (Cross)   
+                                                        (Square)          (Arrow)     (Diamond)         (Triangle)            (Circle)            (Cross)   
                                                                 
     Nute Gunray 30330 zR07  294 80        Potency/Speed 09(2)-SP-Offense	32-SP-Speed	10(2)-SP-Defense	Protection	          10(2)-SP-Protection	18(4)-PO-Potency
 
