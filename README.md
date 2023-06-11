@@ -75,7 +75,7 @@ The MMScore is below 100, thus showing us that I missed something. On the Holo-A
 
 PREREQUISITES
 =============
-- Microsoft Powershell 6.2.0 or higher (Windows, Mac, Linux)
+- Microsoft Powershell 6.2.0 or higher (Windows, Mac, Linux) (https://aka.ms/PSWindows)
 - PSParseHTML Powershell Module (by EvotecIT), installed automatically if not present 
 - Your allycode registered and synched on swgoh.gg
 - Your allycode(s) updated in the CONFIG-Accounts.csv file
