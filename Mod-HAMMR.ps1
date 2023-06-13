@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 23-23a (c)2023 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 23-23b (c)2023 SuperSix/Schattenlegion
 
 #>
 
@@ -60,7 +60,7 @@ $header = @"
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 23-23a (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 23-23b (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
@@ -210,8 +210,8 @@ ForEach ($Account in $AccountInfo) {
                                                         
                     if ($SelectedMod.rarity -gt 5) {$ModTeam.($SlotName) = "BOLD" + $ModTeam.($SlotName)}
                                     
-                } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.").trim(" / ")} 
-            } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.").trim(" / ")}
+                } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")} 
+            } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")}
     
 
         }
@@ -242,9 +242,7 @@ ForEach ($Account in $AccountInfo) {
                 if ($MMScore -eq 130 -and ($EquippedMods | Where-Object {$_.rarity -gt 5 -and $_.tier -eq 5}).count -eq 6) {$MMScore = 150}
                 if ($MMscore -ge 130) {$MMScore = "BOLD" + $MMScore}
         
-        } else {
-         
-        }
+        } 
 
         $ModTeam.MMScore = $MMScore
         $ModRoster = $ModRoster + $ModTeam
@@ -328,7 +326,7 @@ ForEach ($Account in $AccountInfo) {
 
     }
 
-    $SquadOutput.Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALIC","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($RosterInfo.data.Name + "-Teams.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
+    $SquadOutput.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALIC","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($RosterInfo.data.Name + "-Teams.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
     
 
 }   
