@@ -70,6 +70,7 @@ And now let's take Nute as another example:
     Nute Gunray 30330 zR07  294 80        Potency/Speed 09(2)-SP-Offense  32-SP-Speed 10(2)-SP-Defense  Protection	10(2)-SP-Protection 18(4)-PO-Potency
 
 The MMScore is below 100, thus showing us that I missed something. On the Holo-Array the mod is written in red/italic, showing us that I do not have the suggestes primary applied or the mod doesn't have any speed secondary on it. So no I have to go into the game and see if I can find a suitable mod.
+Additionally, several mods only show (2) rolls on speed, so I should also see if I can replace them by suitable mods with better speed or calibrate them to get additiona rolls.
 
 
 
