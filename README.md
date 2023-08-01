@@ -26,7 +26,7 @@ Download these 3 files to your Windows/Mac/Linux machine:
 - Config-Accounts.csv
 - Config-Teams.csv
 
-Replace the allycode in the Config-Accounts.csv with your allycode.
+Replace the allycode in the Config-Accounts.csv with your allycode and chose if you want the script to check your mods in "Strict" or "Relaxed" mode.
 
 Customize the Config-Teams.csv if needed so that if reflects that squads as you actually play them.
 
@@ -85,7 +85,7 @@ MMSCore
 =======
 NOTE: There is no absolute truth in modding, this tool just compares the mods to the current meta. You my find it usefull to mod a character differently for another game mode (JKL for example) or as it takes a different role in the squad that you play it in. This is only a SUGGESTION!
 
-What is the MMScore? the MMScore is intended to help you to learn from the best. It pulls all data from https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/ and compares the character's mods against this meta list and calculates the score as follows:
+What is the MMScore? the MMScore is intended to help you to learn from the best. It pulls all data from swgoh.gg' Mod Meta Report and compares the character's mods against this meta list and calculates the score as follows:
 - Matching mod set 20 points for 4-mod sets (e.g. Speed) and 10 points for 2-mod sets (e.g. Health) (max. 30)
 - Matching primary attribute 5 points per mod (max. 30)
 - Speed on primary or secondary attribute 5 points per mod (max. 30)
@@ -105,6 +105,14 @@ So there are basically 3 levels to achieve:
 - 150 - all mods have additionally been sliced to 6A
 
 NOTE: Mods below 5* and Level 15 are filtered and regarded as not present.
+
+What is the difference between Strict and Relaxed mode?
+- swgoh.gg provides 2 different lists of their Mod Meta Report, one using the Top 100 Guilds' mods and one from all players registerd.
+- In Strict mode, the tool only uses the Top 100's mods and gives you the corresponding score
+- In Relaxed mode, the score is calculated for both lists and the higher score is displayed.
+- If the score from All players is used, this is indicated by the MMScore beinfollowed by "(A)"
+- Relaxed mode has been added to handle the fact that meta sometime "flickers" and shows you a good score one day and a bad store every other day
+
 
 Contact
 =======
