@@ -53,7 +53,7 @@ Let's take the first line from the sample that I uploaded as well (Supersix-Char
 - Power         - The total power of this char
 - Gear          - The Gear-level either G01-G13 or R01-R09 for relic chars, prepending u(ltimate), z(eta), o(micron)
 - Speed         - Speed of the character
-- MMScore       - The Mod Meta Score indicating the level of modding (see below for forther explanations)
+- MMScore       - The Mod Meta Score indicating the level of modding (see below for further explanations)
 - Mod-Sets      - applied (black) or recommended (red/italic) mod-sets for this char
 - Mod-Slot 1-6  - if this field is black: Speed of this mod, number of rolls (improvements) on speed, mod-set of this mod, primary attribute of this mod
 - Mod-Slot 1-6  - if this field is read/italic: Recommended primary attribute for this mod
