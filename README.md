@@ -51,7 +51,7 @@ Let's take the first line from the sample that I uploaded as well (Supersix-Char
 
 - Name          - The ingame name of the character, this may not reflect the name that you see in your localized version of the game but the API cannot return anythin else.
 - Power         - The total power of this char
-- Gear          - The Gear-level either G01-G12 or R01-R09 for relic chars, prepending u(ltimate), z(eta), o(micron)
+- Gear          - The Gear-level either G01-G13 or R01-R09 for relic chars, prepending u(ltimate), z(eta), o(micron)
 - Speed         - Speed of the character
 - MMScore       - The Mod Meta Score indicating the level of modding (see below for forther explanations)
 - Mod-Sets      - applied (black) or recommended (red/italic) mod-sets for this char
@@ -59,7 +59,7 @@ Let's take the first line from the sample that I uploaded as well (Supersix-Char
 - Mod-Slot 1-6  - if this field is read/italic: Recommended primary attribute for this mod
 
 - Name written in bold      - Character is G12 or higher
-- Name background coloured  - Character is relic
+- Name background coloured  - Character is G13 or Relic
 - Mod slot written in bold  - Mod is 6*
 
 And now let's take Nute as another example:
