@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 23-31 (c)2023 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 23-31a (c)2023 SuperSix/Schattenlegion
 
 #>
 
@@ -65,12 +65,12 @@ $header = @"
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 23-31 (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 23-31a (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
 
-    if ($PSVersionTable.PSVersion.ToString() -lt "6.2.0") {Write-Host "ERROR - This script requires Powershell 6.0.0 or higher" -ForegroundColor Red; Break}
+    if ($PSVersionTable.PSVersion.ToString() -lt "6.2.0") {Write-Host "ERROR - This script requires Powershell 6.2.0 or higher" -ForegroundColor Red; Break}
     if ((get-Item .\CONFIG-Accounts.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "ERROR - Config file CONFIG-Accounts.csv missing"-ForegroundColor Red; Break}
     if ((get-Item .\CONFIG-Teams.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Teams.csv missing"-ForegroundColor Yellow; Break}
     # if ((get-Item .\CONFIG-Fleets.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Fleets.csv missing"-ForegroundColor Yellow; Break}
@@ -86,7 +86,6 @@ CheckPrerequisites
 
 $AccountInfo = Import-Csv ".\CONFIG-Accounts.csv" -Delimiter ";"
 $TeamList = Import-Csv ".\CONFIG-Teams.csv" -delimiter ";" 
-$SynergyList = Import-Csv ".\CONFIG-Synergies.csv" -Delimiter ";"
 # $FleetList = Import-Csv ".\CONFIG-Fleets.csv" -delimiter ";" | Sort-Object FleetName
 
 Write-Host "Loading support data" -ForegroundColor Green
@@ -166,35 +165,31 @@ ForEach ($Account in $AccountInfo) {
 
     ForEach ($Char in $ModRosterInfo) {
 
-#        $FinalModTeam = $null
+        $ModTeam = New-Object PSObject -Property $ModTeamObj
+        $ModTeam.Name = $Char.Name
+        $ModTeam.Speed = "{0:0} ({1:0})" -f $Char.stats.5,$Char.stat_diffs.5 
+        $ModTeam.Power = $Char.power
 
-        ForEach($ModMetaMode in $ModMetaModeList)
-
-        {
-
-            $ModTeam = New-Object PSObject -Property $ModTeamObj
-            $ModTeam.Name = $Char.Name
-            $ModTeam.Speed = "{0:0}" -f $Char.stats.5
-            $ModTeam.Power = $Char.power
-           
-
-            if ($Char.relic_tier -gt 2) {
-                
-                $ModTeam.Gear = "R{0:00}" -f ($Char.relic_tier -2)
-
-            } else {
-
-                $ModTeam.Gear = "G{0:00}" -f ($Char.gear_level)
-                
-                if (($Char.gear | Where-Object {$_.is_obtained -eq $true}).count -gt 0) {
-                    
-                    $ModTeam.Gear = $ModTeam.Gear + "+" + ($Char.gear | Where-Object {$_.is_obtained -eq $true}).count
-                
-                }
-
-            }
+        if ($Char.relic_tier -gt 2) {
             
+            $ModTeam.Gear = "R{0:00}" -f ($Char.relic_tier -2)
+
+        } else {
+
+            $ModTeam.Gear = "G{0:00}" -f ($Char.gear_level)
+            
+            if (($Char.gear | Where-Object {$_.is_obtained -eq $true}).count -gt 0) {
+                
+                $ModTeam.Gear = $ModTeam.Gear + "+" + ($Char.gear | Where-Object {$_.is_obtained -eq $true}).count
+            
+            }
+
+        }
+
+        ForEach($ModMetaMode in $ModMetaModeList) {
+
             $MMScore = 0
+            $ModTeam.'Mod-Sets' = ""
             $EquippedModsets = $Char.mod_set_ids
             $EquippedMods = $ModList | Where-Object {$_.character -like $Char.base_id}
             $RequiredMods = ($MetaList | Where-Object {($_.Character -eq ($Char.name)) -and ($_.Mode -like $ModMetaMode)})
@@ -291,6 +286,7 @@ ForEach ($Account in $AccountInfo) {
             if ($ModMetaMode -like "Strict") { 
                 
                 $FinalModTeam = ($ModTeam).psobject.copy()
+                $FinalMMScore = $MMScore
 
             } else {
 
@@ -298,13 +294,14 @@ ForEach ($Account in $AccountInfo) {
 
                     $ModTeam.MMScore = [string]$ModTeam.MMScore + " (A)"
                     $FinalModTeam = ($ModTeam).psobject.copy()
+                    $FinalMMScore = $MMScore
                     
                 }
             }
 
         }
 
-        if ($FinalModTeam.MMscore -ge 130) {$FinalModTeam.MMScore = "BOLD" + $FinalModTeam.MMScore}
+        if ($FinalMMscore -ge 130) {$FinalModTeam.MMScore = "BOLD" + $FinalModTeam.MMScore}
 
         $ModRoster = $ModRoster + $FinalModTeam.psobject.Copy()
 
