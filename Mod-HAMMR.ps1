@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 23-31a (c)2023 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 23-34 (c)2023 SuperSix/Schattenlegion
 
 #>
 
@@ -65,7 +65,7 @@ $header = @"
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 23-31a (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 23-34 (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
@@ -74,7 +74,7 @@ function CheckPrerequisites() {
     if ((get-Item .\CONFIG-Accounts.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "ERROR - Config file CONFIG-Accounts.csv missing"-ForegroundColor Red; Break}
     if ((get-Item .\CONFIG-Teams.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Teams.csv missing"-ForegroundColor Yellow; Break}
     # if ((get-Item .\CONFIG-Fleets.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Fleets.csv missing"-ForegroundColor Yellow; Break}
-    if ((Invoke-WebRequest -uri http://api.swgoh.gg).StatusCode -ne 200) {Write-Host "ERROR - Cannot connect to api.swgoh.gg" -ForegroundColor Red; Break}
+    if ((Invoke-WebRequest -uri http://swgoh.gg).StatusCode -ne 200) {Write-Host "ERROR - Cannot connect to swgoh.gg" -ForegroundColor Red; Break}
     $ParseModule = Get-Module PSParseHTML -ListAvailable -ErrorAction SilentlyContinue
     If ($ParseModule -eq $null) { Install-Module -Name PSParseHTML -AllowClobber -Force }
 
@@ -90,9 +90,9 @@ $TeamList = Import-Csv ".\CONFIG-Teams.csv" -delimiter ";"
 
 Write-Host "Loading support data" -ForegroundColor Green
 
-$UnitsList = ((Invoke-WebRequest -Uri http://api.swgoh.gg/units -ContentType "application/json" ).Content | ConvertFrom-Json).data
+$UnitsList = ((Invoke-WebRequest -Uri http://swgoh.gg/api/units -ContentType "application/json" ).Content | ConvertFrom-Json).data
 $UnitsList | Select-Object Name,Base_id | Sort-Object Name | ConvertTo-Html -Head $header | out-File ".\GAME-NameMapping.htm" -Encoding UTF8
-$OmicronList = (Invoke-WebRequest -Uri http://api.swgoh.gg/abilities).Content | ConvertFrom-Json | Where {$_.is_omicron -eq $true} | Sort-Object character_base_id -Unique
+$OmicronList = (Invoke-WebRequest -Uri http://swgoh.gg/api/abilities).Content | ConvertFrom-Json | Where {$_.is_omicron -eq $true} | Sort-Object character_base_id -Unique
 $CapitalshipList = $Unitslist | Where-Object {$_.is_capital_ship -eq "true"}
 
 # Load and format mod meta data
@@ -107,14 +107,7 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
 
     $RawMetaInfo = (Invoke-WebRequest $ModMetaUrl).Content 
 
-    $RawMetaInfo = $RawMetaInfo.Replace('<div class="collection-char-set collection-char-set1 collection-char-set-max" data-toggle="tooltip" data-title="','')
-    $RawMetaInfo = $RawMetaInfo.Replace('<div class="collection-char-set collection-char-set2 collection-char-set-max" data-toggle="tooltip" data-title="','')
-    $RawMetaInfo = $RawMetaInfo.Replace('<div class="collection-char-set collection-char-set3 collection-char-set-max" data-toggle="tooltip" data-title="','')
-    $RawMetaInfo = $RawMetaInfo.Replace('<div class="collection-char-set collection-char-set4 collection-char-set-max" data-toggle="tooltip" data-title="','')
-    $RawMetaInfo = $RawMetaInfo.Replace('<div class="collection-char-set collection-char-set5 collection-char-set-max" data-toggle="tooltip" data-title="','')
-    $RawMetaInfo = $RawMetaInfo.Replace('<div class="collection-char-set collection-char-set6 collection-char-set-max" data-toggle="tooltip" data-title="','')
-    $RawMetaInfo = $RawMetaInfo.Replace('<div class="collection-char-set collection-char-set7 collection-char-set-max" data-toggle="tooltip" data-title="','')
-    $RawMetaInfo = $RawMetaInfo.Replace('<div class="collection-char-set collection-char-set8 collection-char-set-max" data-toggle="tooltip" data-title="','')
+    $RawMetaInfo = $RawMetaInfo -Replace '<div class="collection-char-set collection-char-set[1-8] collection-char-set-max" data-toggle="tooltip" data-title="',''
     $RawMetaInfo = $RawMetaInfo.Replace("Crit Chance","Critical-Chance")
     $RawMetaInfo = $RawMetaInfo.Replace("Critical Chance","Critical-Chance")
     $RawMetaInfo = $RawMetaInfo.Replace("Crit Damage","Critical-Damage")
@@ -157,7 +150,7 @@ ForEach ($Account in $AccountInfo) {
 
     Write-Host "Loading player data for allycode",$GuildAllyCode -foregroundcolor green
 
-    $RosterInfo = (Invoke-WebRequest ("http://api.swgoh.gg/player/" + $GuildAllyCode) -ErrorAction SilentlyContinue).Content | ConvertFrom-Json
+    $RosterInfo = (Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers @{"Cache-Control"="no-cache"} -ErrorAction SilentlyContinue).Content | ConvertFrom-Json
     
     $ModRoster=@()
     $ModList = $RosterInfo.mods | Where-Object {$_.level -eq 15 -and $_.Rarity -ge 5}
@@ -207,9 +200,9 @@ ForEach ($Account in $AccountInfo) {
             if ($MMScore -lt 30) {$ModTeam."Mod-Sets" = "REDITALIC" + $ModTeam."Mod-Sets"}
 
             ForEach ($Slot in (1,2,3,4,5,6)) {
-
-                $SelectedMod = $EquippedMods | Where-Object {$_.slot -eq $Slot}
-
+                
+                $SelectedMod = $EquippedMods | Where-Object {$_.Slot -eq $Slot}
+            
                 switch ($Slot) {
                     
                     1 { $RequiredPrimaries = "Offense"; $SlotName = "Transmitter" }
@@ -235,16 +228,14 @@ ForEach ($Account in $AccountInfo) {
                         if ($SelectedMod.primary_stat.stat_id -eq 5) {
                         
                             $ModSpeed = ("{0:00}" -f [int]$SelectedMod.primary_stat.display_value)
-                            $ModRoll = ""
-
+                          
                         } else {
                             
-                            $ModSpeed = ("{0:00}" -f [int]($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).display_value) 
-                            $ModRoll = " (" + ($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).roll + ") "
+                            $ModSpeed = ("{0:00} (1:0)" -f [int]($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).display_value),($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).roll
                             
                         }
 
-                        $ModTeam.($SlotName) = $ModSpeed + $ModRoll + " - " + $ModSetShort[$SelectedMod.set] + " - " +  $SelectedMod.primary_stat.name.Replace("Critical","Crit.")
+                        $ModTeam.($SlotName) = $ModSpeed + " - " + $ModSetShort[$SelectedMod.set] + " - " +  $SelectedMod.primary_stat.name.Replace("Critical","Crit.")
                                                             
                         if ($SelectedMod.rarity -gt 5) {$ModTeam.($SlotName) = "BOLD" + $ModTeam.($SlotName)}
                                         
@@ -260,18 +251,9 @@ ForEach ($Account in $AccountInfo) {
 
             }
 
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".trim(" / ").Replace("/ /","/").trim(" / ").trim("/").trim(" /")
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Tenacity / Tenacity / Tenacity","Tenacity (x3)")
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Tenacity / Tenacity","Tenacity (x2)")
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Health / Health / Health","Health (x3)")
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Health / Health","Health (x2)")
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Defense / Defense / Defense","Defense (x3)")
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Defense / Defense","Defense (x2)")
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Potency / Potency / Potency","Potency (x3)")
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Potency / Potency","Potency (x2)")
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Critical Chance / Critical Chance / Critical Chance","Critical Chance (x3)")
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Critical Chance / Critical Chance","Critical Chance (x2)")
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Critical","Crit.")
+            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".trim(" / ").Replace("/ /","/").trim(" / ").trim("/").trim(" /").Replace("Tenacity / Tenacity / Tenacity","Tenacity (x3)").Replace("Tenacity / Tenacity","Tenacity (x2)").Replace("Health / Health / Health","Health (x3)").Replace("Health / Health","Health (x2)").Replace("Defense / Defense / Defense","Defense (x3)")
+            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Defense / Defense","Defense (x2)").Replace("Potency / Potency / Potency","Potency (x3)").Replace("Potency / Potency","Potency (x2)")
+            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Critical Chance / Critical Chance / Critical Chance","Critical Chance (x3)").Replace("Critical Chance / Critical Chance","Critical Chance (x2)").Replace("Critical","Crit.")
             
             if ($MMScore -eq 90) {
             
@@ -303,7 +285,7 @@ ForEach ($Account in $AccountInfo) {
 
         if ($FinalMMscore -ge 130) {$FinalModTeam.MMScore = "BOLD" + $FinalModTeam.MMScore}
 
-        $ModRoster = $ModRoster + $FinalModTeam.psobject.Copy()
+        $ModRoster = $ModRoster + $FinalModTeam # .psobject.Copy()
 
     }
 
@@ -316,6 +298,7 @@ ForEach ($Account in $AccountInfo) {
     Write-Host "Calculating team statistics" -foregroundcolor green
 
     $SquadOutput = $null
+    $SquadOutput3v3 = $null
 
     ForEach ($TeamData in $TeamList){
 
@@ -385,12 +368,29 @@ ForEach ($Account in $AccountInfo) {
             
         }
 
-        $SquadOutPut += $Squad | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + ($TeamName.Replace(") (",","))  + " ({0:0}k) </H1>" -f (($Squad.power | measure -Sum ).sum /1000))
+        if ($TeamData.Is3v3 -like "true") {
 
+            $SquadOutPut3v3 += $Squad | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + ($TeamName.Replace(") (",","))  + " ({0:0}k) </H1>" -f (($Squad.power | measure -Sum ).sum /1000))
+        
+
+        } else {
+
+            $SquadOutPut += $Squad | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + ($TeamName.Replace(") (",","))  + " ({0:0}k) </H1>" -f (($Squad.power | measure -Sum ).sum /1000))
+        
+        }
     }
+
 
     $SquadOutput.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALIC","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($RosterInfo.data.Name + "-Teams.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
     
+    
+    If ($SquadOutput3v3 -ne $null) {
+
+        $SquadOutput3v3.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALIC","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($RosterInfo.data.Name + "-Teams-3v3.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
+    
+
+    } 
+
 <#
 
     # Generate ship statistics
