@@ -28,7 +28,7 @@ Download these 3 files to your Windows/Mac/Linux machine:
 
 Replace the allycode in the Config-Accounts.csv with your allycode and chose if you want the script to check your mods in "Strict" or "Relaxed" mode.
 
-Customize the Config-Teams.csv if needed so that if reflects that squads as you actually play them.
+Customize the Config-Teams.csv if needed so that if reflects that squads as you actually play them and set "Is3v3" to "true" for those line you added for 3v3 GA.
 
 If needed, unblock the PS1 file with the Unblock-File cmdlet (see below).
 
@@ -36,9 +36,10 @@ Start the script in Microsoft Powershell.
 
 What information will you get?
 ==============================
-Basically the tool will drop 2 HTML files with your player name:
-- Chars - listing all chars that you have and that have been leveled to Lvl 50 or higher
-- Teams - showing the chars grouped in squads that can math the squads you defined within the game.
+Basically the tool will drop 3 HTML files with your player name:
+- Chars     - listing all chars that you have and that have been leveled to Lvl 50 or higher
+- Teams     - showing the chars grouped in squads that can math the squads you defined within the game.
+- Teams-3v3 - showing you the teams you built for 3v3 GA (if any have been specified) 
 
 What does that data mean?
 =========================
