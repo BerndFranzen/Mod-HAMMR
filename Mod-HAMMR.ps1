@@ -231,7 +231,7 @@ ForEach ($Account in $AccountInfo) {
                           
                         } else {
                             
-                            $ModSpeed = ("{0:00} (1:0)" -f [int]($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).display_value),($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).roll
+                            $ModSpeed = ("{0:00} " -f [int]($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).display_value) + " (" + ($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).roll + ")"
                             
                         }
 
