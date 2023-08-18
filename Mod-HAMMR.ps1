@@ -235,7 +235,7 @@ ForEach ($Account in $AccountInfo) {
                             
                         }
 
-                        $ModTeam.($SlotName) = $ModSpeed + " - " + $ModSetShort[$SelectedMod.set] + " - " +  $SelectedMod.primary_stat.name.Replace("Critical","Crit.")
+                        $ModTeam.($SlotName) = [string]($ModSpeed + " - " + $ModSetShort[$SelectedMod.set] + " - " +  $SelectedMod.primary_stat.name.Replace("Critical","Crit."))
                                                             
                         if ($SelectedMod.rarity -gt 5) {$ModTeam.($SlotName) = "BOLD" + $ModTeam.($SlotName)}
                                         
