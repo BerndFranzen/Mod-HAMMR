@@ -4,10 +4,7 @@
 
 #>
 
-$ModSetShort = ("","HE","OF","DE","SP","CC","CD","PO","TE")
-$ModSetLong = ("","Health","Offense","Defense","Speed","Critical Chance","Critical Damage","Potency","Tenacity") 
-$OmicronModeList = ("","","","","Raid","","","Territory Battle","Territory War","Grand Arena","","Conquest","","","GA 3v3","GA 5v5")
-$OmicronModeListShort = ("","","","","RD","","","TB","TW","GA","","CQ","","","3v3","5v5")
+
 
 # CSS for output table form
 
@@ -82,6 +79,14 @@ function CheckPrerequisites() {
 
 # MAIN
 
+# Define static data
+
+$ModSetShort = ("","HE","OF","DE","SP","CC","CD","PO","TE")
+$ModSetLong = ("","Health","Offense","Defense","Speed","Critical Chance","Critical Damage","Potency","Tenacity") 
+$OmicronModeList = ("","","","","RD","","","TB","TW","GA","","CQ","","","3v3","5v5")
+$SlotNameList = ("","Transmitter","Receiver","Processor","Holo-Array","Data-Bus","Multiplexer")
+$ModMetaUrlList = ("https://swgoh.gg/stats/mod-meta-report/all/","https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/")
+
 CheckPrerequisites
 
 $AccountInfo = Import-Csv ".\CONFIG-Accounts.csv" -Delimiter ";"
@@ -92,12 +97,10 @@ Write-Host "Loading support data" -ForegroundColor Green
 
 $UnitsList = ((Invoke-WebRequest -Uri http://swgoh.gg/api/units -ContentType "application/json" ).Content | ConvertFrom-Json).data
 $UnitsList | Select-Object Name,Base_id | Sort-Object Name | ConvertTo-Html -Head $header | out-File ".\GAME-NameMapping.htm" -Encoding UTF8
-$OmicronList = (Invoke-WebRequest -Uri http://swgoh.gg/api/abilities).Content | ConvertFrom-Json | Where {$_.is_omicron -eq $true} | Sort-Object character_base_id -Unique
+$OmicronList = (Invoke-WebRequest -Uri http://swgoh.gg/api/abilities).Content | ConvertFrom-Json | Where-Object {$_.is_omicron -eq $true} | Sort-Object character_base_id -Unique
 $CapitalshipList = $Unitslist | Where-Object {$_.is_capital_ship -eq "true"}
 
 # Load and format mod meta data
-
-$ModMetaUrlList = ("https://swgoh.gg/stats/mod-meta-report/all/","https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/")
 
 $MetaList = $null
 
@@ -152,6 +155,8 @@ ForEach ($Account in $AccountInfo) {
 
     $RosterInfo = (Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers @{"Cache-Control"="no-cache"} -ErrorAction SilentlyContinue).Content | ConvertFrom-Json
     
+    Write-Host "Calculation character statistics" -foregroundcolor green
+
     $ModRoster=@()
     $ModList = $RosterInfo.mods | Where-Object {$_.level -eq 15 -and $_.Rarity -ge 5}
     $ModRosterInfo = $RosterInfo.Units.Data | Where-Object {$_.combat_type -eq 1 -and $_.Level -ge 50}
@@ -191,13 +196,13 @@ ForEach ($Account in $AccountInfo) {
             if ($RequiredModSets -contains "Offense" -and $EquippedModsets -contains 2) {$MMScore += 20}
             if ($RequiredModSets -contains "Speed" -and $EquippedModsets -contains 4) {$MMScore += 20}
             if ($RequiredModSets -contains "Critical Damage" -and $EquippedModsets -contains 6) {$MMScore += 20}
-            if ($RequiredModSets -contains "Health" -and $EquippedModsets -contains 1) { $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Health"}).count,($EquippedModsets | Where-Object {$_ -eq 1}).Count | Measure-Object -Minimum).Minimum }
-            if ($RequiredModSets -contains "Defense" -and $EquippedModsets -contains 3) { $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Defense"}).count,($EquippedModsets | Where-Object {$_ -eq 3}).Count | Measure-Object -Minimum).Minimum }
-            if ($RequiredModSets -contains "Critical Chance" -and $EquippedModsets -contains 5) {$MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Critical Chance"}).count,($EquippedModsets | Where-Object {$_ -eq 5}).Count | Measure-Object -Minimum).Minimum }
-            if ($RequiredModSets -contains "Potency" -and $EquippedModsets -contains 7) {$MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Potency"}).count,($EquippedModsets | Where-Object {$_ -eq 7}).Count | Measure-Object -Minimum).Minimum }
-            if ($RequiredModSets -contains "Tenacity" -and $EquippedModsets -contains 8) { $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Tenacity"}).count,($EquippedModsets | Where-Object {$_ -eq 8}).Count | Measure-Object -Minimum).Minimum }
+            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Health"}).count,($EquippedModsets | Where-Object {$_ -eq 1}).Count | Measure-Object -Minimum).Minimum 
+            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Defense"}).count,($EquippedModsets | Where-Object {$_ -eq 3}).Count | Measure-Object -Minimum).Minimum 
+            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Critical Chance"}).count,($EquippedModsets | Where-Object {$_ -eq 5}).Count | Measure-Object -Minimum).Minimum 
+            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Potency"}).count,($EquippedModsets | Where-Object {$_ -eq 7}).Count | Measure-Object -Minimum).Minimum 
+            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Tenacity"}).count,($EquippedModsets | Where-Object {$_ -eq 8}).Count | Measure-Object -Minimum).Minimum 
             
-            if ($MMScore -lt 30) {$ModTeam."Mod-Sets" = "REDITALIC" + $ModTeam."Mod-Sets"}
+            if ($MMScore -lt 30) {$ModTeam."Mod-Sets" = "REDITALICON" + $ModTeam."Mod-Sets"}
 
             ForEach ($Slot in (1,2,3,4,5,6)) {
                 
@@ -205,14 +210,13 @@ ForEach ($Account in $AccountInfo) {
             
                 switch ($Slot) {
                     
-                    1 { $RequiredPrimaries = "Offense"; $SlotName = "Transmitter" }
-                    2 { $RequiredPrimaries = ($RequiredMods."Receiver").Split(" / "); $SlotName = "Receiver"  }
-                    3 { $RequiredPrimaries = "Defense"; $SlotName = "Processor" }
-                    4 { $RequiredPrimaries = ($RequiredMods."Holo-Array").Split(" / "); $SlotName = "Holo-Array" }
-                    5 { $RequiredPrimaries = ($RequiredMods."Data-Bus").Split(" / "); $SlotName = "Data-Bus"  }
-                    6 { $RequiredPrimaries = ($RequiredMods."Multiplexer").Split(" / "); $SlotName = "Multiplexer" }
-
-                    Default {}
+                    1 { $RequiredPrimaries = "Offense" }
+                    2 { $RequiredPrimaries = ($RequiredMods."Receiver").Split(" / ")  }
+                    3 { $RequiredPrimaries = "Defense" }
+                    4 { $RequiredPrimaries = ($RequiredMods."Holo-Array").Split(" / ") }
+                    5 { $RequiredPrimaries = ($RequiredMods."Data-Bus").Split(" / ")  }
+                    6 { $RequiredPrimaries = ($RequiredMods."Multiplexer").Split(" / ") }
+        
                 }
 
                 $RequiredPrimaries = $RequiredPrimaries.Replace("-"," ")
@@ -235,12 +239,12 @@ ForEach ($Account in $AccountInfo) {
                             
                         }
 
-                        $ModTeam.($SlotName) = [string]($ModSpeed + " - " + $ModSetShort[$SelectedMod.set] + " - " +  $SelectedMod.primary_stat.name.Replace("Critical","Crit."))
+                        $ModTeam.($SlotnameList[$Slot]) = [string]($ModSpeed + " - " + $ModSetShort[$SelectedMod.set] + " - " +  $SelectedMod.primary_stat.name.Replace("Critical","Crit."))
                                                             
-                        if ($SelectedMod.rarity -gt 5) {$ModTeam.($SlotName) = "BOLD" + $ModTeam.($SlotName)}
+                        if ($SelectedMod.rarity -gt 5) {$ModTeam.($SlotnameList[$Slot]) = "BOLD" + $ModTeam.($SlotnameList[$Slot])}
                                         
-                    } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")} 
-                } else {$ModTeam.($SlotName) = "REDITALIC" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")}
+                    } else {$ModTeam.($SlotnameList[$Slot]) = "REDITALICON" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")} 
+                } else {$ModTeam.($SlotnameList[$Slot]) = "REDITALICON" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")}
         
 
             }
@@ -251,7 +255,12 @@ ForEach ($Account in $AccountInfo) {
 
             }
 
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".trim(" / ").Replace("/ /","/").trim(" / ").trim("/").trim(" /").Replace("Tenacity / Tenacity / Tenacity","Tenacity (x3)").Replace("Tenacity / Tenacity","Tenacity (x2)").Replace("Health / Health / Health","Health (x3)").Replace("Health / Health","Health (x2)").Replace("Defense / Defense / Defense","Defense (x3)")
+            $ModTeam."Mod-Sets" = ($RequiredModSets | Join-String -Separator " / ")
+
+            # $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".trim(" / ").Replace("/ /","/").trim(" / ").trim("/").trim(" /").Replace("Tenacity / Tenacity / Tenacity","Tenacity (x3)").Replace("Tenacity / Tenacity","Tenacity (x2)").Replace("Health / Health / Health","Health (x3)").Replace("Health / Health","Health (x2)").Replace("Defense / Defense / Defense","Defense (x3)")
+            
+            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("/ /","/").Replace("Tenacity / Tenacity / Tenacity","Tenacity (x3)").Replace("Tenacity / Tenacity","Tenacity (x2)").Replace("Health / Health / Health","Health (x3)").Replace("Health / Health","Health (x2)").Replace("Defense / Defense / Defense","Defense (x3)")
+            
             $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Defense / Defense","Defense (x2)").Replace("Potency / Potency / Potency","Potency (x3)").Replace("Potency / Potency","Potency (x2)")
             $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Critical Chance / Critical Chance / Critical Chance","Critical Chance (x3)").Replace("Critical Chance / Critical Chance","Critical Chance (x2)").Replace("Critical","Crit.")
             
@@ -291,7 +300,7 @@ ForEach ($Account in $AccountInfo) {
 
     $ModRoster = $ModRoster | Sort-Object @{Expression="Power"; Descending=$true}
 
-    ($ModRoster | ConvertTo-Html -PreContent ("<H1> <Center>" + $Rosterinfo.data.name + "</H1>") -Head $header).Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALIC","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)").Replace("BREAK","</br>") | Out-File ($RosterInfo.data.Name + "-Chars.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
+    ($ModRoster | ConvertTo-Html -PreContent ("<H1> <Center>" + $Rosterinfo.data.name + "</H1>") -Head $header).Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)").Replace("BREAK","</br>") | Out-File ($RosterInfo.data.Name + "-Chars.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
 
     # Generating team statistics for all teams defined in CONFIG-Teams.csv
 
@@ -351,11 +360,23 @@ ForEach ($Account in $AccountInfo) {
                     $AppliedOmicrons = $Omicrons | Where-Object {$_.has_omicron_learned -eq $true}
 
                     If (($Zetas.count -eq $AppliedZetas.count) -and ($Zetas -ne $null)) { $SquadMember.Gear = "z" + $SquadMember.Gear }
-                    If ($Omicrons.count -eq $AppliedOmicrons.count -and ($Omicrons -ne $null)) { 
+
+                    if ($AppliedOmicrons -ne $null) {
+
+                        If ($Omicrons.count -eq $AppliedOmicrons.count) { 
+                            
+                            $SquadMember.Gear = "o" + $SquadMember.Gear
+                            
+                            $SquadMember.Name += (" (" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + ")")
+                            $TeamName += (" (" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + ")")
+
+                        } else {
+
+                            $SquadMember.Name += (" (ITALICON" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + "ITALICOFF)")
+                            $TeamName += (" (ITALICON" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + "ITALICOFF)")
+
+                        }
                         
-                        $SquadMember.Gear = "o" + $SquadMember.Gear
-                        $SquadMember.Name += (" (" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + ")")
-                        $TeamName += (" (" + $OmicronModeListShort[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + ")")
                     }
                     
                 }
@@ -381,12 +402,12 @@ ForEach ($Account in $AccountInfo) {
     }
 
 
-    $SquadOutput.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALIC","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($RosterInfo.data.Name + "-Teams.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
+    $SquadOutput.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($RosterInfo.data.Name + "-Teams.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
     
     
     If ($SquadOutput3v3 -ne $null) {
 
-        $SquadOutput3v3.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALIC","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($RosterInfo.data.Name + "-Teams-3v3.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
+        $SquadOutput3v3.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($RosterInfo.data.Name + "-Teams-3v3.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
     
 
     } 
