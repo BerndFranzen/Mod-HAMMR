@@ -48,7 +48,7 @@ Let's take the first line from the sample that I uploaded as well (Supersix-Char
     Name                Power Gear  Speed MMScore Mod-Sets      Transmitter       Receiver    Processor         Holo-Array            Data-Bus        Multiplexer
                                                                 (Square)          (Arrow)     (Diamond)         (Triangle)            (Circle)        (Cross)   
                                                                 
-    Jedi Master Kenobi  42292 uzR07 580   150     Health/Speed  27(5)-HE-Offense  32-SP-Speed 26(5)-SP-Defense  23(5)-HE-Crit. Damage 23(5)-SP-Health 26(5)-SP-Offense
+    Jedi Master Kenobi  42292 uzR07 580   150     Health/Speed  27(5)-HE-Offense+ 32-SP-Speed 26(5)-SP-Defense  23(5)-HE-Crit. Damage 23(5)-SP-Health 26(5)-SP-Offense
 
 - Name          - The ingame name of the character, this may not reflect the name that you see in your localized version of the game but the API cannot return anythin else.
 - Power         - The total power of this char
@@ -56,7 +56,7 @@ Let's take the first line from the sample that I uploaded as well (Supersix-Char
 - Speed         - Speed of the character
 - MMScore       - The Mod Meta Score indicating the level of modding (see below for further explanations)
 - Mod-Sets      - applied (black) or recommended (red/italic) mod-sets for this char
-- Mod-Slot 1-6  - if this field is black: Speed of this mod, number of rolls (improvements) on speed, mod-set of this mod, primary attribute of this mod
+- Mod-Slot 1-6  - if this field is black: Speed of this mod, number of rolls (improvements) on speed, mod-set of this mod, primary attribute of this mod, "+" indicates that this mod has a secondary stat that matches the primary and gives an extra boost
 - Mod-Slot 1-6  - if this field is read/italic: Recommended primary attribute for this mod
 
 - Name written in bold      - Character is G12 or higher
