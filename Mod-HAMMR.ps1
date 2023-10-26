@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 23-34 (c)2023 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 23-38 (c)2023 SuperSix/Schattenlegion
 
 #>
 
@@ -62,7 +62,7 @@ $header = @"
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 23-34 (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 23-38 (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
@@ -70,7 +70,6 @@ function CheckPrerequisites() {
     if ($PSVersionTable.PSVersion.ToString() -lt "6.2.0") {Write-Host "ERROR - This script requires Powershell 6.2.0 or higher" -ForegroundColor Red; Break}
     if ((get-Item .\CONFIG-Accounts.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "ERROR - Config file CONFIG-Accounts.csv missing"-ForegroundColor Red; Break}
     if ((get-Item .\CONFIG-Teams.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Teams.csv missing"-ForegroundColor Yellow; Break}
-    # if ((get-Item .\CONFIG-Fleets.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Fleets.csv missing"-ForegroundColor Yellow; Break}
     if ((Invoke-WebRequest -uri http://swgoh.gg).StatusCode -ne 200) {Write-Host "ERROR - Cannot connect to swgoh.gg" -ForegroundColor Red; Break}
     $ParseModule = Get-Module PSParseHTML -ListAvailable -ErrorAction SilentlyContinue
     If ($ParseModule -eq $null) { Install-Module -Name PSParseHTML -AllowClobber -Force }
@@ -91,14 +90,13 @@ CheckPrerequisites
 
 $AccountInfo = Import-Csv ".\CONFIG-Accounts.csv" -Delimiter ";"
 $TeamList = Import-Csv ".\CONFIG-Teams.csv" -delimiter ";" 
-# $FleetList = Import-Csv ".\CONFIG-Fleets.csv" -delimiter ";" | Sort-Object FleetName
+
 
 Write-Host "Loading support data" -ForegroundColor Green
 
 $UnitsList = ((Invoke-WebRequest -Uri http://swgoh.gg/api/units -ContentType "application/json" ).Content | ConvertFrom-Json).data
 $UnitsList | Select-Object Name,Base_id | Sort-Object Name | ConvertTo-Html -Head $header | out-File ".\GAME-NameMapping.htm" -Encoding UTF8
 $OmicronList = (Invoke-WebRequest -Uri http://swgoh.gg/api/abilities).Content | ConvertFrom-Json | Where-Object {$_.is_omicron -eq $true} | Sort-Object character_base_id -Unique
-$CapitalshipList = $Unitslist | Where-Object {$_.is_capital_ship -eq "true"}
 
 # Load and format mod meta data
 
@@ -136,8 +134,6 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
 }
 
 $ModTeamObj=[ordered]@{Name="";"Power"=0;"Gear"="";"Speed"="";"MMScore"=0;"Mod-Sets"="";"Transmitter"="";"Receiver"="";"Processor"="";"Holo-Array"="";"Data-Bus"="";"Multiplexer"=""}
-
-# $ShipObj=[ordered]@{Name="";"Power"=0;"Gear"="";"Speed"="";"MMScore"=0;"Mod-Sets"="";"Transmitter"="";"Receiver"="";"Processor"="";"Holo-Array"="";"Data-Bus"="";"Multiplexer"=""}
 
 # Start player analysis
 
@@ -240,7 +236,9 @@ ForEach ($Account in $AccountInfo) {
                         }
 
                         $ModTeam.($SlotnameList[$Slot]) = [string]($ModSpeed + " - " + $ModSetShort[$SelectedMod.set] + " - " +  $SelectedMod.primary_stat.name.Replace("Critical","Crit."))
-                                                            
+                        
+                        if ($SelectedMod.secondary_stats.name -contains $SelectedMod.primary_stat.name) { $ModTeam.($SlotnameList[$Slot]) += "+" }
+
                         if ($SelectedMod.rarity -gt 5) {$ModTeam.($SlotnameList[$Slot]) = "BOLD" + $ModTeam.($SlotnameList[$Slot])}
                                         
                     } else {$ModTeam.($SlotnameList[$Slot]) = "REDITALICON" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")} 
@@ -411,43 +409,5 @@ ForEach ($Account in $AccountInfo) {
     
 
     } 
-
-<#
-
-    # Generate ship statistics
-
-    $ShipObj=[ordered]@{Name="";Power=0;;Speed=0}
-    $TotalShipInfo=@()
-
-    $ShipInfo = $RosterInfo.Units.Data | Where-Object {$_.combat_type -eq 2} | Sort-Object -Property Power -Descending
-
-    ForEach ($Ship in $ShipInfo)
-
-    {
-
-        $ShipData = New-Object psobject -Property $ShipObj
-
-        $ShipData.Name = $Ship.Name
-        $ShipData.Power = $Ship.Power
-        $ShipData.Speed = $Ship.stats.5
-
-        $TotalShipInfo += $ShipData
-        
-    }
-
-    $CapitalShipInfo = $TotalShipInfo | Where-Object {$CapitalshipList.name -contains $_.name} 
-
-    $MemberShipInfo =  $TotalShipInfo | Where-Object {$CapitalshipList.name -notcontains $_.name}
-
-    $ShipOutput = $CapitalShipInfo | ConvertTo-Html -Head $header -PreContent ("<H1><Center> Capital Ships </H1>")
-
-    $ShipOutput += $MemberShipInfo | ConvertTo-Html -Head $header -PreContent ("<H1><Center>Ships </H1>")
-
-    $ShipOutput | Out-File ($RosterInfo.data.Name + "-Ships.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
-
-    
-    
-
-#>
 
 }   
