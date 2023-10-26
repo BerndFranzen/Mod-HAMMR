@@ -26,11 +26,9 @@ Download these 3 files to your Windows/Mac/Linux machine:
 - Config-Accounts.csv
 - Config-Teams.csv
 
-Replace the allycode in the Config-Accounts.csv with your allycode and chose if you want the script to check your mods in "Strict" or "Relaxed" mode.
-
-Customize the Config-Teams.csv if needed so that if reflects that squads as you actually play them and set "Is3v3" to "true" for those line you added for 3v3 GA.
-
-Unblock the PS1 file with "Unblock-File .\Mod-HAMMR.ps1" 
+- Replace the allycode in the Config-Accounts.csv with your allycode and chose if you want the script to check your mods in "Strict" or "Relaxed" mode.
+- Customize the Config-Teams.csv if needed so that if reflects that squads as you actually play them and set "Is3v3" to "true" for those line you added for 3v3 GA.
+- Unblock the PS1 file with "Unblock-File .\Mod-HAMMR.ps1" 
 
 Start the script in Microsoft Powershell.
 
