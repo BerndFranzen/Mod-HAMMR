@@ -30,7 +30,7 @@ Replace the allycode in the Config-Accounts.csv with your allycode and chose if 
 
 Customize the Config-Teams.csv if needed so that if reflects that squads as you actually play them and set "Is3v3" to "true" for those line you added for 3v3 GA.
 
-If needed, unblock the PS1 file with the Unblock-File cmdlet (see below).
+Unblock the PS1 file with "Unblock-File .\Mod-HAMMR.ps1" 
 
 Start the script in Microsoft Powershell.
 
@@ -56,7 +56,7 @@ Let's take the first line from the sample that I uploaded as well (Supersix-Char
 - Speed         - Speed of the character
 - MMScore       - The Mod Meta Score indicating the level of modding (see below for further explanations)
 - Mod-Sets      - applied (black) or recommended (red/italic) mod-sets for this char
-- Mod-Slot 1-6  - if this field is black: Speed of this mod, number of rolls (improvements) on speed, mod-set of this mod, primary attribute of this mod
+- Mod-Slot 1-6  - if this field is black: Speed of this mod, number of rolls (improvements) on speed, mod-set of this mod, primary attribute of this mod and a "+" if any secondary attribute of this mod matches the primary one
 - Mod-Slot 1-6  - if this field is read/italic: Recommended primary attribute for this mod
 
 - Name written in bold      - Character is G12 or higher
