@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 23-38 (c)2023 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 23-46 (c)2023 SuperSix/Schattenlegion
 
 #>
 
@@ -62,14 +62,14 @@ $header = @"
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 23-38 (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 23-46 (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
 
     if ($PSVersionTable.PSVersion.ToString() -lt "6.2.0") {Write-Host "ERROR - This script requires Powershell 6.2.0 or higher" -ForegroundColor Red; Break}
     if ((get-Item .\CONFIG-Accounts.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "ERROR - Config file CONFIG-Accounts.csv missing"-ForegroundColor Red; Break}
-    if ((get-Item .\CONFIG-Teams.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Teams.csv missing"-ForegroundColor Yellow; Break}
+    if ((get-Item .\CONFIG-Teams.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Teams.csv missing"-ForegroundColor Yellow}
     if ((Invoke-WebRequest -uri http://swgoh.gg).StatusCode -ne 200) {Write-Host "ERROR - Cannot connect to swgoh.gg" -ForegroundColor Red; Break}
     $ParseModule = Get-Module PSParseHTML -ListAvailable -ErrorAction SilentlyContinue
     If ($ParseModule -eq $null) { Install-Module -Name PSParseHTML -AllowClobber -Force }
@@ -91,10 +91,9 @@ CheckPrerequisites
 $AccountInfo = Import-Csv ".\CONFIG-Accounts.csv" -Delimiter ";"
 $TeamList = Import-Csv ".\CONFIG-Teams.csv" -delimiter ";" 
 
-
 Write-Host "Loading support data" -ForegroundColor Green
 
-$UnitsList = ((Invoke-WebRequest -Uri http://swgoh.gg/api/units -ContentType "application/json" ).Content | ConvertFrom-Json).data
+$UnitsList = ((Invoke-WebRequest -Uri http://swgoh.gg/api/characters -ContentType "application/json" ).Content | ConvertFrom-Json)
 $UnitsList | Select-Object Name,Base_id | Sort-Object Name | ConvertTo-Html -Head $header | out-File ".\GAME-NameMapping.htm" -Encoding UTF8
 $OmicronList = (Invoke-WebRequest -Uri http://swgoh.gg/api/abilities).Content | ConvertFrom-Json | Where-Object {$_.is_omicron -eq $true} | Sort-Object character_base_id -Unique
 
@@ -155,7 +154,7 @@ ForEach ($Account in $AccountInfo) {
 
     $ModRoster=@()
     $ModList = $RosterInfo.mods | Where-Object {$_.level -eq 15 -and $_.Rarity -ge 5}
-    $ModRosterInfo = $RosterInfo.Units.Data | Where-Object {$_.combat_type -eq 1 -and $_.Level -ge 50}
+    $ModRosterInfo = $RosterInfo.Units.Data | Where-Object {$_.combat_type -eq 1 -and $_.Level -ge 50} 
 
     ForEach ($Char in $ModRosterInfo) {
 
@@ -183,27 +182,27 @@ ForEach ($Account in $AccountInfo) {
         ForEach($ModMetaMode in $ModMetaModeList) {
 
             $MMScore = 0
-            $ModTeam.'Mod-Sets' = ""
+            $ModTeam."Mod-Sets" = ""
             $EquippedModsets = $Char.mod_set_ids
             $EquippedMods = $ModList | Where-Object {$_.character -like $Char.base_id}
             $RequiredMods = ($MetaList | Where-Object {($_.Character -eq ($Char.name)) -and ($_.Mode -like $ModMetaMode)})
             $RequiredModSets = $RequiredMods.Sets.Split().Replace("-"," ").trim() | Sort-Object
 
-            if ($RequiredModSets -contains "Offense" -and $EquippedModsets -contains 2) {$MMScore += 20}
-            if ($RequiredModSets -contains "Speed" -and $EquippedModsets -contains 4) {$MMScore += 20}
-            if ($RequiredModSets -contains "Critical Damage" -and $EquippedModsets -contains 6) {$MMScore += 20}
+            if (($RequiredModSets -contains "Offense" -and $EquippedModsets -contains 2) -or ($RequiredModSets -contains "Speed" -and $EquippedModsets -contains 4) -or ($RequiredModSets -contains "Critical Damage" -and $EquippedModsets -contains 6)) {$MMScore += 20}
+
             $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Health"}).count,($EquippedModsets | Where-Object {$_ -eq 1}).Count | Measure-Object -Minimum).Minimum 
             $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Defense"}).count,($EquippedModsets | Where-Object {$_ -eq 3}).Count | Measure-Object -Minimum).Minimum 
             $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Critical Chance"}).count,($EquippedModsets | Where-Object {$_ -eq 5}).Count | Measure-Object -Minimum).Minimum 
             $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Potency"}).count,($EquippedModsets | Where-Object {$_ -eq 7}).Count | Measure-Object -Minimum).Minimum 
             $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Tenacity"}).count,($EquippedModsets | Where-Object {$_ -eq 8}).Count | Measure-Object -Minimum).Minimum 
-            
-            if ($MMScore -lt 30) {$ModTeam."Mod-Sets" = "REDITALICON" + $ModTeam."Mod-Sets"}
 
+            if ($MMScore -lt 30) {$ModTeam."Mod-Sets" = "RED" + $ModTeam."Mod-Sets"}
+        
             ForEach ($Slot in (1,2,3,4,5,6)) {
                 
                 $SelectedMod = $EquippedMods | Where-Object {$_.Slot -eq $Slot}
-            
+                $SlotName=$SlotNameList[$Slot]
+    
                 switch ($Slot) {
                     
                     1 { $RequiredPrimaries = "Offense" }
@@ -235,30 +234,25 @@ ForEach ($Account in $AccountInfo) {
                             
                         }
 
-                        $ModTeam.($SlotnameList[$Slot]) = [string]($ModSpeed + " - " + $ModSetShort[$SelectedMod.set] + " - " +  $SelectedMod.primary_stat.name.Replace("Critical","Crit."))
-                        
-                        if ($SelectedMod.secondary_stats.name -contains $SelectedMod.primary_stat.name) { $ModTeam.($SlotnameList[$Slot]) += "+" }
+                        $ModTeam.($Slotname) = [string]($ModSpeed + " - " + $ModSetShort[$SelectedMod.set] + " - " +  $SelectedMod.primary_stat.name.Replace("Critical","Crit."))
 
-                        if ($SelectedMod.rarity -gt 5) {$ModTeam.($SlotnameList[$Slot]) = "BOLD" + $ModTeam.($SlotnameList[$Slot])}
+                        $ModTeam.($Slotname) += ("+" * ($SelectedMod.secondary_stats.name | Where-Object {$_ -like $SelectedMod.primary_stat.name}).count )
+
+                        if ($SelectedMod.rarity -gt 5) {$ModTeam.($Slotname) = "BOLD" + $ModTeam.($Slotname)}
                                         
-                    } else {$ModTeam.($SlotnameList[$Slot]) = "REDITALICON" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")} 
-                } else {$ModTeam.($SlotnameList[$Slot]) = "REDITALICON" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")}
+                    } else {$ModTeam.($Slotname) = "REDITALICON" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")} 
+                } else {$ModTeam.($Slotname) = "REDITALICON" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")}
         
 
             }
             
             ForEach ($ModSet in $RequiredModSets) {
-
+    
                 $ModTeam."Mod-Sets" += $ModSet  + " / "
 
             }
 
-            $ModTeam."Mod-Sets" = ($RequiredModSets | Join-String -Separator " / ")
-
-            # $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".trim(" / ").Replace("/ /","/").trim(" / ").trim("/").trim(" /").Replace("Tenacity / Tenacity / Tenacity","Tenacity (x3)").Replace("Tenacity / Tenacity","Tenacity (x2)").Replace("Health / Health / Health","Health (x3)").Replace("Health / Health","Health (x2)").Replace("Defense / Defense / Defense","Defense (x3)")
-            
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("/ /","/").Replace("Tenacity / Tenacity / Tenacity","Tenacity (x3)").Replace("Tenacity / Tenacity","Tenacity (x2)").Replace("Health / Health / Health","Health (x3)").Replace("Health / Health","Health (x2)").Replace("Defense / Defense / Defense","Defense (x3)")
-            
+            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".trim(" / ").Replace("/ /","/").Replace("Tenacity / Tenacity / Tenacity","Tenacity (x3)").Replace("Tenacity / Tenacity","Tenacity (x2)").Replace("Health / Health / Health","Health (x3)").Replace("Health / Health","Health (x2)").Replace("Defense / Defense / Defense","Defense (x3)")
             $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Defense / Defense","Defense (x2)").Replace("Potency / Potency / Potency","Potency (x3)").Replace("Potency / Potency","Potency (x2)")
             $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Critical Chance / Critical Chance / Critical Chance","Critical Chance (x3)").Replace("Critical Chance / Critical Chance","Critical Chance (x2)").Replace("Critical","Crit.")
             
@@ -329,15 +323,15 @@ ForEach ($Account in $AccountInfo) {
                 
                 if ($SquadMember.gear -ge "G13") {
                         
-                        if ($UnitInfo.alignment -eq 1) { $SquadMember.Name = "BGYELLOW" + $SquadMember.Name}
-                        if ($UnitInfo.alignment -eq 2) { $SquadMember.Name = "BGBLUE" + $SquadMember.Name}
-                        if ($UnitInfo.alignment -eq 3) { $SquadMember.Name = "BGRED" + $SquadMember.Name}
+                        if ($UnitInfo.alignment -like "Neutral") { $SquadMember.Name = "BGYELLOW" + $SquadMember.Name}
+                        if ($UnitInfo.alignment -like "Light Side") { $SquadMember.Name = "BGBLUE" + $SquadMember.Name}
+                        if ($UnitInfo.alignment -like "Dark Side") { $SquadMember.Name = "BGRED" + $SquadMember.Name}
                     
                 } else {
 
-                    if ($UnitInfo.alignment -eq 1) { $SquadMember.Name = "YELLOW" + $SquadMember.Name}
-                    if ($UnitInfo.alignment -eq 2) { $SquadMember.Name = "BLUE" + $SquadMember.Name}
-                    if ($UnitInfo.alignment -eq 3) { $SquadMember.Name = "RED" + $SquadMember.Name}
+                    if ($UnitInfo.alignment -like "Neutral") { $SquadMember.Name = "YELLOW" + $SquadMember.Name}
+                    if ($UnitInfo.alignment -like "Light Side") { $SquadMember.Name = "BLUE" + $SquadMember.Name}
+                    if ($UnitInfo.alignment -like "Dark Side") { $SquadMember.Name = "RED" + $SquadMember.Name}
                 }
 
                 if ($SquadMemberInfo.ability_data -ne $null) {
@@ -389,12 +383,12 @@ ForEach ($Account in $AccountInfo) {
 
         if ($TeamData.Is3v3 -like "true") {
 
-            $SquadOutPut3v3 += $Squad | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + ($TeamName.Replace(") (",","))  + " ({0:0}k) </H1>" -f (($Squad.power | measure -Sum ).sum /1000))
+            $SquadOutPut3v3 += $Squad | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + ($TeamName.Replace(") (",","))  + " ({0:0}k) </H1>" -f (($Squad.power | Measure-Object -Sum ).sum /1000))
         
 
         } else {
 
-            $SquadOutPut += $Squad | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + ($TeamName.Replace(") (",","))  + " ({0:0}k) </H1>" -f (($Squad.power | measure -Sum ).sum /1000))
+            $SquadOutPut += $Squad | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + ($TeamName.Replace(") (",","))  + " ({0:0}k) </H1>" -f (($Squad.power | Measure-Object -Sum ).sum /1000))
         
         }
     }
@@ -410,4 +404,5 @@ ForEach ($Account in $AccountInfo) {
 
     } 
 
+    
 }   
