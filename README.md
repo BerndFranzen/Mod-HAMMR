@@ -36,7 +36,9 @@ What information will you get?
 Basically the tool will drop 3 HTML files with your player name:
 - Chars     - listing all chars that you have and that have been leveled to Lvl 50 or higher
 - Teams     - showing the chars grouped in squads that can match the squads you defined within the game.
-- Teams-3v3 - showing you the teams you built for 3v3 GA (if any have been specified) 
+- Teams-3v3 - showing you the teams you built for 3v3 GA (if any have been specified)
+
+GAC Oppenents : Once the script detects a new GAC bracket it will load the opponent's data automatically and created the 3 files mentioned above for each opponent in a separate subdirectory for this GAC round.
 
 What does that data mean?
 =========================
@@ -53,7 +55,7 @@ Let's take the first line from the sample that I uploaded as well (Supersix-Char
 - Speed         - Speed of the character
 - MMScore       - The Mod Meta Score indicating the level of modding (see below for further explanations)
 - Mod-Sets      - applied (black) or recommended (red/italic) mod-sets for this char
-- Mod-Slot 1-6  - if this field is black: Speed of this mod, number of rolls (improvements) on speed, mod-set of this mod, primary attribute of this mod and a "+" if any secondary attribute of this mod matches the primary one
+- Mod-Slot 1-6  - if this field is black: Speed of this mod, number of rolls (improvements) on speed, mod-set of this mod, primary attribute of this mod, one or more "+" for any secondary attribute of this mod that matches the primary attribute and one or more "*" for any secondary attribute of this mod that matches on of the mod-sets.
 - Mod-Slot 1-6  - if this field is read/italic: Recommended primary attribute for this mod
 
 - Name written in bold      - Character is G12 or higher
