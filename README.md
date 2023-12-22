@@ -65,15 +65,12 @@ Let's take the first line from the sample that I uploaded as well (Supersix-Char
 - Name background coloured  - Character is G13 or Relic
 - Mod slot written in bold  - Mod is 6*
 
-And now let's take Nute as another example:
+And now let's take Rey (Jedi Training) as another example:
 
-    Name        Power Gear  Speed MMScore Mod-Sets      Transmitter       Receiver    Processor         Holo-Array  Data-Bus            Multiplexer
-                                                        (Square)          (Arrow)     (Diamond)         (Triangle)  (Circle)            (Cross)   
-                                                                
-    Nute Gunray 30330 zR07  294 80 (A)    Potency/Speed 09(2)-SP-Offense  32-SP-Speed 10(2)-SP-Defense  Protection	10(2)-SP-Protection 18(4)-PO-Potency
+![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/79690d78-16ba-48dd-ad1a-ceb4a3ff5d43)
 
-The MMScore is below 100, and followed by "(A)" thus showing us that I missed something. First, the mod score was higher when comparing against the overall list but not the Top 100. On the Holo-Array the mod is written in red/italic, showing us that I do not have the suggestes primary applied or the mod doesn't have any speed secondary on it. So no I have to go into the game and see if I can find a suitable mod.
-Additionally, several mods only show (2) rolls on speed, so I should also see if I can replace them by suitable mods with better speed or calibrate them to get additiona rolls.
+The MMScore is below 100, and followed by "(A)" thus showing us that I missed something. First, the mod score was higher when comparing against the overall list but not the Top 100. On the Holo-Array the mod is written in red/italic, showing us that I do not have the suggestes primary applied or the mod doesn't have any speed secondary on it. So now I have to go into the game and see if I can find a suitable mod.
+Additionally, several mods only show less than (5) rolls on speed, so I should also see if I can replace them by suitable mods with better speed or calibrate them to get additiona rolls.
 
 
 
