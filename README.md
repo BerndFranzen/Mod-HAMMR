@@ -44,7 +44,7 @@ Basically the tool will drop 3 HTML files with your player name:
 - Teams     - showing the chars grouped in squads that can match the squads you defined within the game.
 - Teams-3v3 - showing you the teams you built for 3v3 GA (if any have been specified)
 
-GAC Oppenents : Once the script detects a new GAC bracket it will load the opponent's data automatically and created the 3 files mentioned above for each opponent in a separate subdirectory for this GAC round.
+GAC Oppenents : Once the script detects a new GAC bracket it will load the opponent's data automatically and created the 3 files mentioned above for each opponent in a separate subdirectory "GAC Opponents".
 
 What does that data mean?
 =========================
