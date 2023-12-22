@@ -48,7 +48,7 @@ GAC Oppenents : Once the script detects a new GAC bracket it will load the oppon
 
 What does that data mean?
 =========================
-Let's take the first line from the sample that I uploaded as well (Supersix-Chars.htm):
+Let's take the first line from the sample that I uploaded as well:
 
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/82f79dbf-db61-4889-b53c-b8a6c09a6e5a)
 
