@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 23-46 (c)2023 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 23-51 (c)2023 SuperSix/Schattenlegion
 
 #>
 
@@ -62,7 +62,7 @@ $header = @"
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 23-46 (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 23-51 (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
@@ -73,6 +73,9 @@ function CheckPrerequisites() {
     if ((Invoke-WebRequest -uri http://swgoh.gg).StatusCode -ne 200) {Write-Host "ERROR - Cannot connect to swgoh.gg" -ForegroundColor Red; Break}
     $ParseModule = Get-Module PSParseHTML -ListAvailable -ErrorAction SilentlyContinue
     If ($ParseModule -eq $null) { Install-Module -Name PSParseHTML -AllowClobber -Force }
+
+    $GacSubDir = (Get-ChildItem (".\GAC Opponents") -ErrorAction SilentlyContinue).name
+    if ($GacSubDir -eq $null) { $Dummy = New-Item -Path (".\GAC Opponents") -ItemType Directory -Erroraction silentlycontinue }
 
 }
 
@@ -150,14 +153,13 @@ ForEach ($Account in $AccountInfo) {
 
     $GacBracketInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode + "/gac-bracket") -Headers @{"Cache-Control"="no-cache"}  -SkipHttpErrorCheck -ErrorAction SilentlyContinue).Content | ConvertFrom-Json).data
 
-    $GacSubDir = (Get-ChildItem (".\") -ErrorAction SilentlyContinue).name  | Where-Object {$_ -like $GacBracketInfo.season_id}
-    if ($GacSubDir -eq $null -and $GacBracketInfo -ne $null) {
-
-        Write-Host "New GAC Bracket detected, adding opponents" -ForegroundColor Green
-        
-        $Dummy = New-Item -Path (".\" + $GacBracketInfo.season_id) -ItemType Directory -Erroraction silentlycontinue
+    if ($GacBracketInfo -ne $null) {
     
         ForEach ($BracketPlayer in ($GACBracketInfo.bracket_players |Where-Object {$_.ally_code -notlike $GuildAllyCode})) {
+
+            $IsPresent = (Get-ChildItem ".\GAC Opponents").name | Where-Object {$_ -like ($BracketPlayer.player_name + "*")} 
+
+            if ($IsPresent -eq $null) { 
 
             $GACOpponent = New-Object psobject -Property $GACOpponentObj
             $GACOpponent.AllyCode = $BracketPlayer.ally_code
@@ -165,6 +167,8 @@ ForEach ($Account in $AccountInfo) {
             $GACOpponent.IsGacOpponent = $true
 
             $FullList += $GACOpponent
+
+            }
 
         }
 
@@ -184,12 +188,12 @@ ForEach ($Account in $FullList) {
 
     # Load player data
 
-    Write-Host "Loading player data for allycode",$GuildAllyCode -foregroundcolor green
+    Write-Host "Loading player data for allycode",$GuildAllyCode -foregroundcolor green -NoNewline
+
+    If ($Account.IsGACOpponent) { Write-Host " - GAC Opponent" -ForegroundColor Blue} else {Write-Host}
 
     $RosterInfo = (Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers @{"Cache-Control"="no-cache"} -ErrorAction SilentlyContinue).Content | ConvertFrom-Json
 
-    
-    
     Write-Host "Calculation character statistics" -foregroundcolor green
 
     $ModRoster=@()
@@ -335,15 +339,7 @@ ForEach ($Account in $FullList) {
 
     $ModRoster = $ModRoster | Sort-Object @{Expression="Power"; Descending=$true}
 
-    If ($Account.IsGacOpponent -eq $true -and $AccountInfo.AllyCode -notcontains $Account.AllyCode) {
-
-        $OutputSubdir = ".\" + $GACBracketInfo.season_id + "\"
-
-    } else {
-        
-        $OutputSubdir = ".\"
-
-    }
+    If ($Account.IsGacOpponent -eq $true -and $AccountInfo.AllyCode -notcontains $Account.AllyCode) { $OutputSubdir = ".\GAC Opponents\" } else { $OutputSubdir = ".\" }
 
     ($ModRoster | ConvertTo-Html -PreContent ("<H1> <Center>" + $Rosterinfo.data.name + "</H1>") -Head $header).Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)").Replace("BREAK","</br>") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Chars.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
 
