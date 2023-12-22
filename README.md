@@ -31,6 +31,9 @@ How to start
 
 Start the script in Microsoft Powershell.
 
+![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/23d01fcc-efdd-4de4-8d6b-15baa434e8e7)
+
+
 What information will you get?
 ==============================
 Basically the tool will drop 3 HTML files with your player name:
