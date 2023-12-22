@@ -31,7 +31,10 @@ How to start
 
 Start the script in Microsoft Powershell.
 
-![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/23d01fcc-efdd-4de4-8d6b-15baa434e8e7)
+
+![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/72272df4-b533-4fc6-85e4-b8c5651f61d9)
+
+
 
 
 What information will you get?
