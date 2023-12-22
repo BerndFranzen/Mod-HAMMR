@@ -50,6 +50,9 @@ What does that data mean?
 =========================
 Let's take the first line from the sample that I uploaded as well (Supersix-Chars.htm):
 
+![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/2ef70838-572d-440d-8353-533f33203e21)
+
+
     Name                Power Gear  Speed MMScore Mod-Sets      Transmitter       Receiver    Processor         Holo-Array            Data-Bus        Multiplexer
                                                                 (Square)          (Arrow)     (Diamond)         (Triangle)            (Circle)        (Cross)   
                                                                 
