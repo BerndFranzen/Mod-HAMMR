@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 23-51 (c)2023 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 24-05 (c)2024 SuperSix/Schattenlegion
 
 #>
 
@@ -56,13 +56,20 @@ $header = @"
 
 "@
 
+<#
 
+Output
+
+Team Summary Guild, avg Speed + MMScore 
+Team Details Guild 
+
+#>
 
 
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 23-51 (c)2023 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 24-05 (c)2024 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
@@ -116,9 +123,9 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
 
     $RawMetaInfo = $RawMetaInfo -Replace '<div class="collection-char-set collection-char-set[1-8] collection-char-set-max" data-toggle="tooltip" data-title="',''
     $RawMetaInfo = $RawMetaInfo.Replace("Crit Chance","Critical-Chance")
-    $RawMetaInfo = $RawMetaInfo.Replace("Critical Chance","Critical-Chance")
+    #$RawMetaInfo = $RawMetaInfo.Replace("Critical Chance","Critical-Chance")
     $RawMetaInfo = $RawMetaInfo.Replace("Crit Damage","Critical-Damage")
-    $RawMetaInfo = $RawMetaInfo.Replace("Critical Damage","Critical-Damage")
+    #$RawMetaInfo = $RawMetaInfo.Replace("Critical Damage","Critical-Damage")
     $RawMetaInfo = $RawMetaInfo.Replace("&#x27;","'")
     $RawMetaInfo = $RawMetaInfo.Replace("&quot;",'"')
     $RawMetaInfo = $RawMetaInfo.Replace('" data-container="body"></div>','')
@@ -139,20 +146,28 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
     
 }
 
-$ModTeamObj=[ordered]@{Name="";"Power"=0;"Gear"="";"Speed"="";"MMScore"=0;"Mod-Sets"="";"Transmitter"="";"Receiver"="";"Processor"="";"Holo-Array"="";"Data-Bus"="";"Multiplexer"=""}
-$GACOpponentObj=@{"AllyCode"="";"MetaMode"="";"IsGacOpponent"=$false}
+$ModTeamObj=[ordered]@{Name="";RawName="";"Power"=0;"Gear"="";"RawGear"="";"Speed"="";"RawSpeed"=0;"RawSpd+"=0;"RawEquippedModCount"=0;"MMScore"=0;"RawMMScore"="";"Mod-Sets"="";"Transmitter"="";"Receiver"="";"Processor"="";"Holo-Array"="";"Data-Bus"="";"Multiplexer"=""}
+$GACOpponentObj=@{"AllyCode"="";"MetaMode"="";"IsGacOpponent"=$false;"GuildName"=""}
 $GACOpponent = New-Object psobject -Property $GACOpponentObj
+
+$MemberTeamList = @{}
+$GuildTeamList = @{}
 
 $FullList = @()
 
-
 ForEach ($Account in $AccountInfo) { 
     
-    $FullList += $Account
     $GuildAllyCode = $Account.Allycode
 
     $GacBracketInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode + "/gac-bracket") -Headers @{"Cache-Control"="no-cache"}  -SkipHttpErrorCheck -ErrorAction SilentlyContinue).Content | ConvertFrom-Json).data
+    $PlayerInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers @{"Cache-Control"="no-cache"}  -SkipHttpErrorCheck -ErrorAction SilentlyContinue).Content | ConvertFrom-Json).data
 
+    # $Account |Add-Member -Name GuildName -Value $PlayerInfo.guild_name -MemberType NoteProperty
+    $Account |Add-Member -Name GuildID -Value $PlayerInfo.guild_id -MemberType NoteProperty
+    $Account |Add-Member -Name PlayerName -Value $PlayerInfo.name -MemberType NoteProperty
+    
+    $FullList += $Account
+    
     if ($GacBracketInfo -ne $null) {
     
         ForEach ($BracketPlayer in ($GACBracketInfo.bracket_players |Where-Object {$_.ally_code -notlike $GuildAllyCode})) {
@@ -165,6 +180,7 @@ ForEach ($Account in $AccountInfo) {
             $GACOpponent.AllyCode = $BracketPlayer.ally_code
             $GACOpponent.MetaMode = $Account.MetaMode
             $GACOpponent.IsGacOpponent = $true
+            $GACOpponent | Add-Member -Name PlayerName -Value $BracketPlayer.player_name -MemberType NoteProperty
 
             $FullList += $GACOpponent
 
@@ -174,7 +190,40 @@ ForEach ($Account in $AccountInfo) {
 
     }
 
+    If ($Account.GuildMode -like "true") {
+
+        Write-Host "Loading guild data for",$PlayerInfo.guild_name -ForegroundColor Green
+
+        $GuildInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/guild-profile/" + $Account.guildid) -SkipHttpErrorCheck  -ErrorAction SilentlyContinue ).Content | ConvertFrom-Json).Data
+        
+        $GuildStats += $GuildInfo.members | Select-Object player_name,galactic_power | Sort-Object galactic_power -Descending
+
+       ForEach ($GuildPlayer in ($GuildInfo.Members | Where-Object {$_.ally_code -ne $null} |  Sort-object player_name)) {
+
+            $GACOpponent = New-Object psobject -Property $GACOpponentObj
+            $GACOpponent.AllyCode = $GuildPlayer.ally_code
+            $GACOpponent.MetaMode = $Account.MetaMode
+            $GACOpponent.GuildName = $GuildInfo.name
+            $GACOpponent |Add-Member -Name PlayerName -Value $GuildPlayer.player_name -MemberType NoteProperty
+
+            $FullList += $GACOpponent
+
+        }
+
+    }
+
 }
+
+$GuildStats | Add-Member -Name Member -MemberType NoteProperty -Value 0
+$GuildStats | Add-Member -Name "Total GM" -MemberType NoteProperty -Value 0
+$GuildStats | Add-Member -Name "Char GM" -MemberType NoteProperty -Value 0
+$GuildStats | Add-Member -Name "Ship GM" -MemberType NoteProperty -Value 0
+$GuildStats | Add-Member -Name "GLs" -MemberType NoteProperty -Value 0
+$GuildStats | Add-Member -Name "MMScore" -MemberType NoteProperty -Value 0
+$GuildStats | Add-Member -Name "Spd+" -MemberType NoteProperty -Value 0
+$GuildStats | Add-Member -Name "MMSpd+" -MemberType NoteProperty -Value 0
+$GuildStats | Add-Member -Name "GA Rank" -MemberType NoteProperty -Value 0
+
 
 # Start player analysis
 
@@ -188,13 +237,11 @@ ForEach ($Account in $FullList) {
 
     # Load player data
 
-    Write-Host "Loading player data for allycode",$GuildAllyCode -foregroundcolor green -NoNewline
+    Write-Host "Loading player data for",$Account.PlayerName -foregroundcolor green -NoNewline
 
-    If ($Account.IsGACOpponent) { Write-Host " - GAC Opponent" -ForegroundColor Blue} else {Write-Host}
+    If ($Account.IsGACOpponent) { Write-Host " GAC Opponent" -ForegroundColor Blue} else { Write-Host "",$Account.GuildName -ForegroundColor Blue}
 
     $RosterInfo = (Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers @{"Cache-Control"="no-cache"} -ErrorAction SilentlyContinue).Content | ConvertFrom-Json
-
-    Write-Host "Calculation character statistics" -foregroundcolor green
 
     $ModRoster=@()
     $ModList = $RosterInfo.mods | Where-Object {$_.level -eq 15 -and $_.Rarity -ge 5}
@@ -205,7 +252,9 @@ ForEach ($Account in $FullList) {
     ForEach ($Char in $ModRosterInfo) {
 
         $ModTeam.Name = $Char.Name
+        $ModTeam.RawSpeed = $Char.stats.5
         $ModTeam.Speed = "{0:0} ({1:0})" -f $Char.stats.5,$Char.stat_diffs.5 
+        $ModTeam."RawSpd+" = $Char.stat_diffs.5
         $ModTeam.Power = $Char.power
 
         if ($Char.relic_tier -gt 2) {
@@ -224,22 +273,25 @@ ForEach ($Account in $FullList) {
 
         }
 
+        $ModTeam.RawGear = $ModTeam.Gear
+
         ForEach($ModMetaMode in $ModMetaModeList) {
 
             $MMScore = 0
             $ModTeam."Mod-Sets" = ""
             $EquippedModsets = $Char.mod_set_ids
             $EquippedMods = $ModList | Where-Object {$_.character -like $Char.base_id}
+            $ModTeam.RawEquippedModCount = $EquippedMods.count
             $RequiredMods = ($MetaList | Where-Object {($_.Character -eq ($Char.name)) -and ($_.Mode -like $ModMetaMode)})
             $RequiredModSets = $RequiredMods.Sets.Split().Replace("-"," ").trim() | Sort-Object
 
             if (($RequiredModSets -contains "Offense" -and $EquippedModsets -contains 2) -or ($RequiredModSets -contains "Speed" -and $EquippedModsets -contains 4) -or ($RequiredModSets -contains "Critical Damage" -and $EquippedModsets -contains 6)) {$MMScore += 20}
 
-            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Health"}).count,($EquippedModsets | Where-Object {$_ -eq 1}).Count | Measure-Object -Minimum).Minimum 
-            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Defense"}).count,($EquippedModsets | Where-Object {$_ -eq 3}).Count | Measure-Object -Minimum).Minimum 
-            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Critical Chance"}).count,($EquippedModsets | Where-Object {$_ -eq 5}).Count | Measure-Object -Minimum).Minimum 
-            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Potency"}).count,($EquippedModsets | Where-Object {$_ -eq 7}).Count | Measure-Object -Minimum).Minimum 
-            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -like "Tenacity"}).count,($EquippedModsets | Where-Object {$_ -eq 8}).Count | Measure-Object -Minimum).Minimum 
+            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Health"}).count,($EquippedModsets | Where-Object {$_ -eq 1}).Count | Measure-Object -Minimum).Minimum 
+            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Defense"}).count,($EquippedModsets | Where-Object {$_ -eq 3}).Count | Measure-Object -Minimum).Minimum 
+            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Critical Chance"}).count,($EquippedModsets | Where-Object {$_ -eq 5}).Count | Measure-Object -Minimum).Minimum 
+            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Potency"}).count,($EquippedModsets | Where-Object {$_ -eq 7}).Count | Measure-Object -Minimum).Minimum 
+            $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Tenacity"}).count,($EquippedModsets | Where-Object {$_ -eq 8}).Count | Measure-Object -Minimum).Minimum 
 
             if ($MMScore -lt 30) {$ModTeam."Mod-Sets" = "RED" + $ModTeam."Mod-Sets"}
         
@@ -258,8 +310,6 @@ ForEach ($Account in $FullList) {
                     6 { $RequiredPrimaries = ($RequiredMods."Multiplexer").Split(" / ") }
         
                 }
-
-                $RequiredPrimaries = $RequiredPrimaries.Replace("-"," ")
 
                 if (($RequiredPrimaries -contains $SelectedMod.primary_stat.name) -and ($RequiredModSets -contains $ModSetLong[$SelectedMod.set])) {
 
@@ -293,13 +343,9 @@ ForEach ($Account in $FullList) {
 
             }
             
-            ForEach ($ModSet in $RequiredModSets) {
-    
-                $ModTeam."Mod-Sets" += $ModSet  + " / "
+            $ModTeam."Mod-Sets" = $RequiredModSets | Join-String -Separator " / "
 
-            }
-
-            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".trim(" / ").Replace("/ /","/").Replace("Tenacity / Tenacity / Tenacity","Tenacity (x3)").Replace("Tenacity / Tenacity","Tenacity (x2)").Replace("Health / Health / Health","Health (x3)").Replace("Health / Health","Health (x2)").Replace("Defense / Defense / Defense","Defense (x3)")
+            $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Tenacity / Tenacity / Tenacity","Tenacity (x3)").Replace("Tenacity / Tenacity","Tenacity (x2)").Replace("Health / Health / Health","Health (x3)").Replace("Health / Health","Health (x2)").Replace("Defense / Defense / Defense","Defense (x3)")
             $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Defense / Defense","Defense (x2)").Replace("Potency / Potency / Potency","Potency (x3)").Replace("Potency / Potency","Potency (x2)")
             $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Critical Chance / Critical Chance / Critical Chance","Critical Chance (x3)").Replace("Critical Chance / Critical Chance","Critical Chance (x2)").Replace("Critical","Crit.")
             
@@ -331,26 +377,48 @@ ForEach ($Account in $FullList) {
 
         }
 
+
+        $FinalModTeam.RawMMScore = $FinalMMScore
         if ($FinalMMscore -ge 130) {$FinalModTeam.MMScore = "BOLD" + $FinalModTeam.MMScore}
 
-        $ModRoster = $ModRoster + $FinalModTeam # .psobject.Copy()
+        $ModRoster = $ModRoster + $FinalModTeam.psobject.Copy()
 
     }
 
     $ModRoster = $ModRoster | Sort-Object @{Expression="Power"; Descending=$true}
 
-    If ($Account.IsGacOpponent -eq $true -and $AccountInfo.AllyCode -notcontains $Account.AllyCode) { $OutputSubdir = ".\GAC Opponents\" } else { $OutputSubdir = ".\" }
+    If ($Account.IsGacOpponent -eq $true -and $AccountInfo.AllyCode -notcontains $Account.AllyCode) { $OutputSubdir = ".\GAC Opponents\" } else { 
+        
+        if ($Account.GuildName -ne $null) {$OutputSubdir = ".\" + $Account.GuildName + "\Member-"} else {$OutputSubdir = ".\"}
 
-    ($ModRoster | ConvertTo-Html -PreContent ("<H1> <Center>" + $Rosterinfo.data.name + "</H1>") -Head $header).Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)").Replace("BREAK","</br>") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Chars.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
+    }    
+
+    ($ModRoster | Select-Object -ExcludeProperty Raw* | ConvertTo-Html -PreContent ("<H1> <Center>" + $Rosterinfo.data.name + "</H1>") -Head $header).Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)").Replace("BREAK","</br>") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Chars.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
+
+    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Member" = $RosterInfo.data.Name
+    
+    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Total GM" = '{0:N0}' -f $RosterInfo.data.galactic_power
+    
+    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Char GM" = '{0:N0}' -f $RosterInfo.data.character_galactic_power
+    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Ship GM" = '{0:N0}' -f $RosterInfo.data.ship_galactic_power
+    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)].GLs = ($RosterInfo.units.data | Where-Object {$_.is_galactic_legend -eq $true}).Count
+    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)].MMSCore = [int](($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0}).RawMMScore |Measure-Object -Average).Average
+    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Spd+" = [int](($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0})."RawSpd+" |Measure-Object -Average).Average
+
+    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."MMSpd+" = [int](((($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0})."RawSpd+" |Measure-Object -Average).Average + (($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0}).RawMMScore |Measure-Object -Average).Average) / 2)
+    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."GA Rank" = $RosterInfo.data.league_name + " " + $RosterInfo.data.division_number
+
 
     # Generating team statistics for all teams defined in CONFIG-Teams.csv
-
-    Write-Host "Calculating team statistics" -foregroundcolor green
 
     $SquadOutput = $null
     $SquadOutput3v3 = $null
 
-    ForEach ($TeamData in $TeamList){
+    # $IndividualTeamList = $TeamList # ???
+
+    If (($AccountInfo.allycode -contains $Account.AllyCode) -or ($Account.IsGACOpponent -eq $true)) {$IndividualTeamList = $TeamList} else { $IndividualTeamList = $TeamList | Where-Object {$_.IsGuildTeam -like "true"}}
+
+    ForEach ($TeamData in $IndividualTeamList){
 
         $TeamName=$TeamData.TeamName
         $MemberDefId=$TeamData.MemberDefId.Split(",")
@@ -366,21 +434,23 @@ ForEach ($Account in $FullList) {
 
             if ($SquadMember.name -ne $null) {
 
+                $SquadMember.RawName =$SquadMember.Name
+
                 $SquadMemberInfo = $ModRosterInfo | Where-Object {$_.name -like $MemberDisplayName}
 
                 if ($SquadMember.gear -ge "G12") { $SquadMember.Name = "BOLD" + $SquadMember.Name }
                 
                 if ($SquadMember.gear -ge "G13") {
                         
-                        if ($UnitInfo.alignment -like "Neutral") { $SquadMember.Name = "BGYELLOW" + $SquadMember.Name}
-                        if ($UnitInfo.alignment -like "Light Side") { $SquadMember.Name = "BGBLUE" + $SquadMember.Name}
-                        if ($UnitInfo.alignment -like "Dark Side") { $SquadMember.Name = "BGRED" + $SquadMember.Name}
+                        if ($UnitInfo.alignment -eq "Neutral") { $SquadMember.Name = "BGYELLOW" + $SquadMember.Name}
+                        if ($UnitInfo.alignment -eq "Light Side") { $SquadMember.Name = "BGBLUE" + $SquadMember.Name}
+                        if ($UnitInfo.alignment -eq "Dark Side") { $SquadMember.Name = "BGRED" + $SquadMember.Name}
                     
                 } else {
 
-                    if ($UnitInfo.alignment -like "Neutral") { $SquadMember.Name = "YELLOW" + $SquadMember.Name}
-                    if ($UnitInfo.alignment -like "Light Side") { $SquadMember.Name = "BLUE" + $SquadMember.Name}
-                    if ($UnitInfo.alignment -like "Dark Side") { $SquadMember.Name = "RED" + $SquadMember.Name}
+                    if ($UnitInfo.alignment -eq "Neutral") { $SquadMember.Name = "YELLOW" + $SquadMember.Name}
+                    if ($UnitInfo.alignment -eq "Light Side") { $SquadMember.Name = "BLUE" + $SquadMember.Name}
+                    if ($UnitInfo.alignment -eq "Dark Side") { $SquadMember.Name = "RED" + $SquadMember.Name}
                 }
 
                 if ($SquadMemberInfo.ability_data -ne $null) {
@@ -432,26 +502,110 @@ ForEach ($Account in $FullList) {
 
         if ($TeamData.Is3v3 -like "true") {
 
-            $SquadOutPut3v3 += $Squad | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + ($TeamName.Replace(") (",","))  + " ({0:0}k) </H1>" -f (($Squad.power | Measure-Object -Sum ).sum /1000))
-        
+            $SquadOutPut3v3 += ($Squad | Select-Object -ExcludeProperty Raw*) | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + ($TeamName.Replace(") (",","))  + " ({0:0}k)" -f (($Squad.power | Measure-Object -Sum ).sum /1000)+ " (" + (($Squad.RawGear | Measure-Object -Minimum ).minimum) + ") </H1>")
 
         } else {
 
-            $SquadOutPut += $Squad | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + ($TeamName.Replace(") (",","))  + " ({0:0}k) </H1>" -f (($Squad.power | Measure-Object -Sum ).sum /1000))
+            if ($TeamData.IsGuildTeam -like "true") {$MemberTeamList[($TeamData.TeamName)] = ($Squad.psobject.Copy())}
+
+            $SquadOutPut += ($Squad | Select-Object -ExcludeProperty Raw*) | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + ($TeamName.Replace(") (",","))  + " ({0:0}k)" -f (($Squad.power | Measure-Object -Sum ).sum /1000) + " (" + (($Squad.RawGear | Measure-Object -Minimum ).minimum) + ") </H1>")
         
         }
     }
 
-
     $SquadOutput.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Teams.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
-    
-    
+
     If ($SquadOutput3v3 -ne $null) {
 
         $SquadOutput3v3.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Teams-3v3.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
-    
-
+  
     } 
 
+    $GuildTeamList[($RosterInfo.data.name)] = $MemberTeamList.psobject.Copy() # only if not gac opponent
     
 }   
+
+if ($GuildTeamList -ne $null) {
+
+    $TeamStatList = $TeamList | Where-Object {$_.IsGuildTeam -like "true"}
+
+    $GuildList = $FullList.GuildName | Where-Object {$_ -ne ""} | Sort-Object -Unique
+
+    ForEach ($Guild in $GuildList) {
+
+        Write-Host "Building team statistics for",$Guild -ForegroundColor Green
+
+        $GuildMemberList = ($FullList |Where-Object {$_.GuildName -eq $Guild}).PlayerName
+
+        $GuildInfo = $GuildStats | Where-Object {$GuildMemberList -contains $_.player_name} 
+
+        $GuildInfo | Select-Object -ExcludeProperty "*_*"  | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + $Guild + "</H1>") | Out-File (".\" + $Guild + "\GUILD-Member.htm") -Encoding unicode 
+
+        ForEach ($Team in $TeamStatList) {
+
+            $TeamSummaryObj=[ordered]@{Name="";"Gear"=0;"Power"=0;"Speed"=0;"MMScore"=0;"RawPower"=0}
+            $TeamNameList = @()
+
+            ForEach ($DefId in ($Team.MemberDefId.Split(","))) {
+
+                $TeamSummaryObj.add(($UnitsList | Where-Object {$_.base_id -like $DefId}  ).name,0)
+                $TeamNameList += ($UnitsList | Where-Object {$_.base_id -like $DefId}).name
+
+            } 
+
+            $TeamSummary = @()
+            $TeamHtml = $null
+
+            ForEach ($GuildMember in $GuildMemberList) {
+
+                $TeamStatsUser = New-Object psobject -Property $TeamSummaryObj
+                $TeamStatsUser.Name = $GuildMember
+
+                ForEach ($TeamMember in $TeamNameList) {
+
+                    if((($GuildTeamList[$GuildMember][$Team.TeamName]) |Where-Object {$_.RawName -eq $TeamMember}) -ne $null ) {
+
+                        $TeamStatsUser.($TeamMember) = (($GuildTeamList[$GuildMember][$Team.TeamName]) |Where-Object {$_.RawName -eq $TeamMember}).Gear + " | " + (($GuildTeamList[$GuildMember][$Team.TeamName]) |Where-Object {$_.RawName -eq $TeamMember}).Speed  + " | " + (($GuildTeamList[$GuildMember][$Team.TeamName]) |Where-Object {$_.RawName -eq $TeamMember}).RawMMScore
+                    
+                    } else {
+
+                        $TeamStatsUser.($TeamMember) = "---"
+
+                    }
+
+                }
+
+                $TeamStatsUser."Power" =  '{0:N0}' -f (($GuildTeamList[$GuildMember][$Team.TeamName]).Power | Measure-Object -Sum).Sum
+                $TeamStatsUser."RawPower" =  (($GuildTeamList[$GuildMember][$Team.TeamName]).Power | Measure-Object -Sum).Sum
+                
+                    if ((($GuildTeamList[$GuildMember][$Team.TeamName]).RawGear | Measure-Object -Minimum).count -eq $TeamNameList.count ) {
+
+                        $TeamStatsUser."Gear" =  (($GuildTeamList[$GuildMember][$Team.TeamName]).RawGear | Measure-Object -Minimum).Minimum
+
+                    } else {
+
+                        $TeamStatsUser."Gear" =  "---"
+
+                    }
+                
+                $TeamStatsUser."Speed" =  [int](($GuildTeamList[$GuildMember][$Team.TeamName]).RawSpeed | Measure-Object -Average).Average
+                $TeamStatsUser."MMScore" =  [int](($GuildTeamList[$GuildMember][$Team.TeamName]).RawMMScore | Measure-Object -Average).Average
+
+                $TeamSummary += $TeamStatsUser
+
+                $TeamHtml += $GuildTeamList[$GuildMember][$Team.TeamName] | Select-Object -ExcludeProperty raw* | ConvertTo-Html -PreContent ("<H1><Center>" + ($GuildMember) + "</H1>") -Title ($Team.TeamName)
+
+            }
+
+            $TeamSummary = $TeamSummary |Sort-Object -Property Gear,RawPower -Descending
+
+            $TeamHtml = ($TeamSummary | Select-Object -ExcludeProperty raw* | ConvertTo-Html -Title ($Team.TeamName) -Head $header -PreContent ("<H1><Center>" + $Team.TeamName + "</H1>")) + $TeamHtml
+
+            $TeamHtml.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File (".\" + $Guild + "\TEAM-" + $team.teamname + ".htm")  -Encoding unicode -ErrorAction SilentlyContinue
+
+        }
+
+    }
+
+}
+
