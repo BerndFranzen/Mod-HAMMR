@@ -86,9 +86,10 @@ What information will you get as a guild?
 For each guild, all data will be stored in a subdirectory with the guild's name:
 - Guild-Member - Summary for the entire guild
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/b9547e97-0b48-40a0-a722-4aaeea984294)
-- Member-<Name>-Chars - listing all chars of that meber that have been leveled to Lvl 50 or higher
+- Member-(Name)-Chars - listing all chars of that meber that have been leveled to Lvl 50 or higher
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/1da3db7f-320d-4b7a-aaee-d572fe590f09)
-- Team-<Name> - showing a summary for each tea mdefined as well as detailed information about the team for each guild member
+- Member-(Name)-Teams - 
+- Team-(Name) - showing a summary for each tea mdefined as well as detailed information about the team for each guild member
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/51beed50-153a-42ef-a8b7-45c857b88935)
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/ce1c549b-0da1-46bb-a74a-0661915184de)
 
