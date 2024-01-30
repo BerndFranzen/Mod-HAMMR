@@ -44,8 +44,8 @@ Additionally, after following the steps above:
 
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/c4f8e438-4738-432d-9044-744742f6e815)
 
-What information will you get?
-==============================
+What information will you get as a player?
+==========================================
 Basically the tool will drop 3 HTML files with your player name:
 - Chars     - listing all chars that you have and that have been leveled to Lvl 50 or higher
 - Teams     - showing the chars grouped in squads that can match the squads you defined within the game.
