@@ -21,18 +21,23 @@ This is where Mod-HAMMR (How Are My Mods Really) my be helpful to you. This tool
 - Freely customizeable squads that reflect your squad selection within the game, helping you to keep focus und which chars to improve next
 - Analysis for yourself and your entire guild (if required)
 
-How to start
-============
+How to start as a single player
+===============================
 1) Download these 3 files to your Windows/Mac/Linux machine:
 - Mod-HAMMR.ps1
 - Config-Accounts.csv
 - Config-Teams.csv
-2) Replace the allycode in the Config-Accounts.csv with your allycode and chose if you want the script to check your mods in "Strict" or "Relaxed" mode.
-3) Customize the Config-Teams.csv if needed so that if reflects that squads as you actually play them and set "Is3v3" to "true" for those line you added for 3v3 GA.
+2) Replace the allycode in the Config-Accounts.csv file with your allycode and chose if you want the script to check your mods in "Strict" or "Relaxed" mode.
+3) Customize the Config-Teams.csv file if needed so that if reflects that squads as you actually play them and set "Is3v3" to "true" for those line you added for 3v3 GA.
 4) Unblock the PS1 file with "Unblock-File .\Mod-HAMMR.ps1" 
 
 Start the script in Microsoft Powershell.
 
+How to start as a guild
+=======================
+Additionally, after following the steps above:
+1) In the Config-Accounts.csv set the GuildMode value for your allycode to "true"
+2) In th Config-Teams.csv file se the IsGuildTeam value to "true" for alle teams that you want to have analyzed for your entire guild
 
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/72272df4-b533-4fc6-85e4-b8c5651f61d9)
 
