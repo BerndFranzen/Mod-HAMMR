@@ -100,24 +100,6 @@ For each guild, all data will be stored in a subdirectory with the guild's name:
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/51beed50-153a-42ef-a8b7-45c857b88935)
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/ce1c549b-0da1-46bb-a74a-0661915184de)
 
-What does that data mean for my guild?
-======================================
-Let's take the first line from the sample below for a specific team:
-
-
-- Name          - The ingame name of the character, this may not reflect the name that you see in your localized version of the game but the API cannot return anythin else. In the teams list, if the name is followed by some information in brackets (GA, TB, TW, 3v3, 5v5, RD, CQ) this means, that this char has an Omicron applied for this certain mode. If the Omicron is display in italics it means that there are more than 1 Omicron required for that char but at least 1 but not all are applied.
-- Power         - The total power of this char
-- Gear          - The Gear-level either G01-G13 or R01-R09 for relic chars, prepending u(ltimate), z(eta), o(micron)
-- Speed         - Speed of the character with the bonus given thorugh mods in brackets
-- MMScore       - The Mod Meta Score indicating the level of modding (see below for further explanations)
-- Mod-Sets      - applied (black) or recommended (red/italic) mod-sets for this char
-- Mod-Slot 1-6  - if this field is black: Speed of this mod, number of rolls (improvements) on speed, mod-set of this mod, primary attribute of this mod, one or more "+" for any secondary attribute of this mod that matches the primary attribute and one or more "*" for any secondary attribute of this mod that matches on of the mod-sets.
-- Mod-Slot 1-6  - if this field is read/italic: Recommended primary attribute for this mod
-
-- Name written in bold      - Character is G12 or higher
-- Name background coloured  - Character is G13 or Relic
-- Mod slot written in bold  - Mod is 6*
-
 PREREQUISITES
 =============
 - Microsoft Powershell 6.2.0 or higher (Windows, Mac, Linux) (https://aka.ms/PSWindows)
