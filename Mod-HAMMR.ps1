@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 24-05 (c)2024 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 24-05a (c)2024 SuperSix/Schattenlegion
 
 #>
 
@@ -69,7 +69,7 @@ Team Details Guild
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 24-05 (c)2024 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 24-05a (c)2024 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
@@ -209,6 +209,11 @@ ForEach ($Account in $AccountInfo) {
             $FullList += $GACOpponent
 
         }
+
+    } else {
+
+        $GuildStats =@{}
+
 
     }
 
@@ -395,19 +400,22 @@ ForEach ($Account in $FullList) {
 
     ($ModRoster | Select-Object -ExcludeProperty Raw* | ConvertTo-Html -PreContent ("<H1> <Center>" + $Rosterinfo.data.name + "</H1>") -Head $header).Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)").Replace("BREAK","</br>") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Chars.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
 
-    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Member" = $RosterInfo.data.Name
-    
-    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Total GM" = '{0:N0}' -f $RosterInfo.data.galactic_power
-    
-    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Char GM" = '{0:N0}' -f $RosterInfo.data.character_galactic_power
-    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Ship GM" = '{0:N0}' -f $RosterInfo.data.ship_galactic_power
-    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)].GLs = ($RosterInfo.units.data | Where-Object {$_.is_galactic_legend -eq $true}).Count
-    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)].MMSCore = [int](($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0}).RawMMScore |Measure-Object -Average).Average
-    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Spd+" = [int](($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0})."RawSpd+" |Measure-Object -Average).Average
 
-    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."MMSpd+" = [int](((($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0})."RawSpd+" |Measure-Object -Average).Average + (($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0}).RawMMScore |Measure-Object -Average).Average) / 2)
-    $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."GA Rank" = $RosterInfo.data.league_name + " " + $RosterInfo.data.division_number
+    if ($Account.GuildName -ne $null) {
 
+        $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Member" = $RosterInfo.data.Name
+        
+        $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Total GM" = '{0:N0}' -f $RosterInfo.data.galactic_power
+        
+        $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Char GM" = '{0:N0}' -f $RosterInfo.data.character_galactic_power
+        $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Ship GM" = '{0:N0}' -f $RosterInfo.data.ship_galactic_power
+        $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)].GLs = ($RosterInfo.units.data | Where-Object {$_.is_galactic_legend -eq $true}).Count
+        $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)].MMSCore = [int](($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0}).RawMMScore |Measure-Object -Average).Average
+        $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Spd+" = [int](($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0})."RawSpd+" |Measure-Object -Average).Average
+
+        $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."MMSpd+" = [int](((($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0})."RawSpd+" |Measure-Object -Average).Average + (($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0}).RawMMScore |Measure-Object -Average).Average) / 2)
+        $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."GA Rank" = $RosterInfo.data.league_name + " " + $RosterInfo.data.division_number
+    }
 
     # Generating team statistics for all teams defined in CONFIG-Teams.csv
 
