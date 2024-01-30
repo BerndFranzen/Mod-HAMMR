@@ -55,8 +55,8 @@ Basically the tool will drop 3 HTML files with your player name:
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/f1308c94-f08b-4082-8a04-f431ebd16162)
 - GAC Oppenents : Once the script detects a new GAC bracket it will load the opponent's data automatically and created the 3 files mentioned above for each opponent in a separate subdirectory "GAC Opponents".
 
-What does that data mean?
-=========================
+What does that data mean for me?
+=================================
 Let's take the first line from the sample below for a specific team:
 
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/82f79dbf-db61-4889-b53c-b8a6c09a6e5a)
@@ -81,7 +81,34 @@ And now let's take Rey (Jedi Training) as another example:
 The MMScore is below 100, and followed by "(A)" thus showing us that I missed something. First, the mod score was higher when comparing against the overall list but not the Top 100. On the Holo-Array the mod is written in red/italic, showing us that I do not have the suggestes primary applied or the mod doesn't have any speed secondary on it. So now I have to go into the game and see if I can find a suitable mod.
 Additionally, several mods only show less than (5) rolls on speed, so I should also see if I can replace them by suitable mods with better speed or calibrate them to get additiona rolls.
 
+What information will you get as a guild?
+==========================================
+Basically the tool will drop 3 HTML files with your player name:
+- Chars     - listing all chars that you have and that have been leveled to Lvl 50 or higher
 
+- Teams     - showing the chars grouped in squads that can match the squads you defined within the game.
+
+- Teams-3v3 - showing you the teams you built for 3v3 GA (if any have been specified)
+
+
+
+What does that data mean for my guild?
+======================================
+Let's take the first line from the sample below for a specific team:
+
+
+- Name          - The ingame name of the character, this may not reflect the name that you see in your localized version of the game but the API cannot return anythin else. In the teams list, if the name is followed by some information in brackets (GA, TB, TW, 3v3, 5v5, RD, CQ) this means, that this char has an Omicron applied for this certain mode. If the Omicron is display in italics it means that there are more than 1 Omicron required for that char but at least 1 but not all are applied.
+- Power         - The total power of this char
+- Gear          - The Gear-level either G01-G13 or R01-R09 for relic chars, prepending u(ltimate), z(eta), o(micron)
+- Speed         - Speed of the character with the bonus given thorugh mods in brackets
+- MMScore       - The Mod Meta Score indicating the level of modding (see below for further explanations)
+- Mod-Sets      - applied (black) or recommended (red/italic) mod-sets for this char
+- Mod-Slot 1-6  - if this field is black: Speed of this mod, number of rolls (improvements) on speed, mod-set of this mod, primary attribute of this mod, one or more "+" for any secondary attribute of this mod that matches the primary attribute and one or more "*" for any secondary attribute of this mod that matches on of the mod-sets.
+- Mod-Slot 1-6  - if this field is read/italic: Recommended primary attribute for this mod
+
+- Name written in bold      - Character is G12 or higher
+- Name background coloured  - Character is G13 or Relic
+- Mod slot written in bold  - Mod is 6*
 
 PREREQUISITES
 =============
