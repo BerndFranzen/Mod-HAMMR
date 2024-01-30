@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 24-05a (c)2024 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 24-05b (c)2024 SuperSix/Schattenlegion
 
 #>
 
@@ -69,7 +69,7 @@ Team Details Guild
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 24-05a (c)2024 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 24-05b (c)2024 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
@@ -193,6 +193,8 @@ ForEach ($Account in $AccountInfo) {
     If ($Account.GuildMode -like "true") {
 
         Write-Host "Loading guild data for",$PlayerInfo.guild_name -ForegroundColor Green
+
+        $Dummy = New-Item -Path (".\" + $PlayerInfo.guild_name) -ItemType Directory -Erroraction silentlycontinue
 
         $GuildInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/guild-profile/" + $Account.guildid) -SkipHttpErrorCheck  -ErrorAction SilentlyContinue ).Content | ConvertFrom-Json).Data
         
