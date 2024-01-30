@@ -31,8 +31,7 @@ How to start as a single player
 3) Replace the allycode in the Config-Accounts.csv file with your allycode and chose if you want the script to check your mods in "Strict" or "Relaxed" mode.
 4) Customize the Config-Teams.csv file if needed so that if reflects that squads as you actually play them and set "Is3v3" to "true" for those line you added for 3v3 GA.
 5) Unblock the PS1 file with "Unblock-File .\Mod-HAMMR.ps1" 
-
-Start the script in Microsoft Powershell 6.2.0 or higher.
+6) Start the script in Microsoft Powershell 6.2.0 or higher.
 
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/72272df4-b533-4fc6-85e4-b8c5651f61d9)
 
@@ -41,12 +40,9 @@ How to start as a guild
 Additionally, after following the steps above:
 1) In the Config-Accounts.csv set the GuildMode value for your allycode to "true"
 2) In th Config-Teams.csv file se the IsGuildTeam value to "true" for alle teams that you want to have analyzed for your entire guild
-
+3) Start the script in Microsoft Powershell 6.2.0 or higher.
 
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/c4f8e438-4738-432d-9044-744742f6e815)
-
-
-
 
 What information will you get?
 ==============================
