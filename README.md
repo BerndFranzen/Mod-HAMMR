@@ -43,6 +43,7 @@ Additionally, after following the steps above:
 2) In th Config-Teams.csv file se the IsGuildTeam value to "true" for alle teams that you want to have analyzed for your entire guild
 
 
+![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/c4f8e438-4738-432d-9044-744742f6e815)
 
 
 
