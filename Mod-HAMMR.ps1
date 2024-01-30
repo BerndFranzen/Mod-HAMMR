@@ -1,9 +1,10 @@
 <#
 
-    SWGOH Mod-HAMMR Build 24-05b (c)2024 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 24-05c (c)2024 SuperSix/Schattenlegion
 
 #>
 
+# Support Grandivory's Mod optimizer JSON templates to override swgoh.gg meta - mark MMScore with (O)verride
 
 
 # CSS for output table form
@@ -69,7 +70,7 @@ Team Details Guild
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 24-05b (c)2024 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 24-05c (c)2024 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
@@ -113,7 +114,7 @@ $OmicronList = (Invoke-WebRequest -Uri http://swgoh.gg/api/abilities).Content | 
 
 # Load and format mod meta data
 
-$MetaList = $null
+$MetaList = @()
 
 ForEach ($ModMetaUrl in $ModMetaUrlList)
 
@@ -135,14 +136,21 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
     If ($ModMetaUrl -like "*guilds_100_gp*") { 
         
         $RawMetaList | Add-Member -Name "Mode" -MemberType NoteProperty -Value "Strict"
-
+       
     } else {
         
         $RawMetaList | Add-Member -Name "Mode" -MemberType NoteProperty -Value "Relaxed"
     
     }
    
-    $MetaList += $RawMetaList
+    ForEach ($RawMetaObject in $RawMetaList) {
+
+        $RawMetaObject.Sets = $RawMetaObject.Sets.Split().Replace("-"," ").trim() | Sort-Object
+        $MetaList = $Metalist + $RawMetaObject
+
+    }
+
+    # $MetaList += $RawMetaList
     
 }
 
@@ -290,7 +298,7 @@ ForEach ($Account in $FullList) {
             $EquippedMods = $ModList | Where-Object {$_.character -like $Char.base_id}
             $ModTeam.RawEquippedModCount = $EquippedMods.count
             $RequiredMods = ($MetaList | Where-Object {($_.Character -eq ($Char.name)) -and ($_.Mode -like $ModMetaMode)})
-            $RequiredModSets = $RequiredMods.Sets.Split().Replace("-"," ").trim() | Sort-Object
+            $RequiredModSets = $RequiredMods.Sets # .Split().Replace("-"," ").trim() | Sort-Object
 
             if (($RequiredModSets -contains "Offense" -and $EquippedModsets -contains 2) -or ($RequiredModSets -contains "Speed" -and $EquippedModsets -contains 4) -or ($RequiredModSets -contains "Critical Damage" -and $EquippedModsets -contains 6)) {$MMScore += 20}
 
@@ -403,7 +411,7 @@ ForEach ($Account in $FullList) {
     ($ModRoster | Select-Object -ExcludeProperty Raw* | ConvertTo-Html -PreContent ("<H1> <Center>" + $Rosterinfo.data.name + "</H1>") -Head $header).Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)").Replace("BREAK","</br>") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Chars.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
 
 
-    if ($Account.GuildName -ne $null) {
+    if ($Account.GuildName -ne $null -and $Account.IsGacOpponent -ne $true) {
 
         $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Member" = $RosterInfo.data.Name
         
