@@ -33,13 +33,15 @@ How to start as a single player
 
 Start the script in Microsoft Powershell.
 
+![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/72272df4-b533-4fc6-85e4-b8c5651f61d9)
+
 How to start as a guild
 =======================
 Additionally, after following the steps above:
 1) In the Config-Accounts.csv set the GuildMode value for your allycode to "true"
 2) In th Config-Teams.csv file se the IsGuildTeam value to "true" for alle teams that you want to have analyzed for your entire guild
 
-![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/72272df4-b533-4fc6-85e4-b8c5651f61d9)
+
 
 
 
