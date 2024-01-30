@@ -31,7 +31,7 @@ How to start as a single player
 3) Customize the Config-Teams.csv file if needed so that if reflects that squads as you actually play them and set "Is3v3" to "true" for those line you added for 3v3 GA.
 4) Unblock the PS1 file with "Unblock-File .\Mod-HAMMR.ps1" 
 
-Start the script in Microsoft Powershell.
+Start the script in Microsoft Powershell 6.2.0 or higher.
 
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/72272df4-b533-4fc6-85e4-b8c5651f61d9)
 
