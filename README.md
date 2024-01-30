@@ -83,9 +83,11 @@ Additionally, several mods only show less than (5) rolls on speed, so I should a
 
 What information will you get as a guild?
 ==========================================
-Basically the tool will drop 3 HTML files with your player name:
-- Chars     - listing all chars that you have and that have been leveled to Lvl 50 or higher
-
+For each guild, all data will be stored in a subdirectory with the guild's name:
+- Guild-Member - Summary for the entire guild
+- ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/b9547e97-0b48-40a0-a722-4aaeea984294)
+- Member-<Name>-Chars - listing all chars of that meber that have been leveled to Lvl 50 or higher
+![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/1da3db7f-320d-4b7a-aaee-d572fe590f09)
 - Teams     - showing the chars grouped in squads that can match the squads you defined within the game.
 
 - Teams-3v3 - showing you the teams you built for 3v3 GA (if any have been specified)
