@@ -94,7 +94,7 @@ For each guild, all data will be stored in a subdirectory with the guild's name:
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/b9547e97-0b48-40a0-a722-4aaeea984294)
 - Member-(Name)-Chars - listing all chars of that meber that have been leveled to Lvl 50 or higher
 - Member-(Name)-Teams - listing all guild-teams of that member 
-- Team-(Name) - showing a summary for each tea mdefined as well as detailed information about the team for each guild member. The summary contains the following information:
+- Team-(Name) - showing a summary for each team defined as well as detailed information about the team for each guild member. The summary contains the following information:
   - Overall gear level of the team indicated by the lowest-geared character
   - Average Speed and MMScore of the team
   - Gear level, Speed and MMScore of each character in the team
