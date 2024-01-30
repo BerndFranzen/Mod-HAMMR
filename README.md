@@ -81,10 +81,16 @@ And now let's take Rey (Jedi Training) as another example:
 The MMScore is below 100, and followed by "(A)" thus showing us that I missed something. First, the mod score was higher when comparing against the overall list but not the Top 100. On the Holo-Array the mod is written in red/italic, showing us that I do not have the suggestes primary applied or the mod doesn't have any speed secondary on it. So now I have to go into the game and see if I can find a suitable mod.
 Additionally, several mods only show less than (5) rolls on speed, so I should also see if I can replace them by suitable mods with better speed or calibrate them to get additiona rolls.
 
-What information will you get as a guild?
-==========================================
+What additional information will you get as a guild?
+====================================================
 For each guild, all data will be stored in a subdirectory with the guild's name:
 - Guild-Member - Summary for the entire guild
+  - Name and GM of each player
+  - Number of Galactic Legends
+  - Average MMScore (calculated over all characters having one or more mods assigned)
+  - Average Speed-Bonus through mods (calculated over all characters having one or more mods assigned)
+  - MMSpeed+ - Average of MMScore and Speed-Bonus
+  - Grand Arena Position
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/b9547e97-0b48-40a0-a722-4aaeea984294)
 - Member-(Name)-Chars - listing all chars of that meber that have been leveled to Lvl 50 or higher
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/1da3db7f-320d-4b7a-aaee-d572fe590f09)
