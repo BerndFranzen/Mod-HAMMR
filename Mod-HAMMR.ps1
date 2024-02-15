@@ -151,7 +151,7 @@ $CustomMetaList = @()
 
 if ($CustomJSONFileList -ne $null) {
 
-    Write-Host "Loading custom templates" -ForegroundColor Green
+    Write-Host "Loading Grandivory's Mods Optimizer Templates" -ForegroundColor Green
 
     ForEach ($CustomJSONFile in $CustomJSONFileList) {
 
@@ -188,7 +188,7 @@ ForEach ($Account in $AccountInfo) {
     
     if ($GacBracketInfo -ne $null) {
     
-        ForEach ($BracketPlayer in ($GACBracketInfo.bracket_players |Where-Object {$_.ally_code -notlike $GuildAllyCode})) {
+        ForEach ($BracketPlayer in ($GACBracketInfo.bracket_players |Where-Object {$_.ally_code -notlike $GuildAllyCode -and $_.ally_code -ne $null})) {
 
             $IsPresent = (Get-ChildItem ".\GAC Opponents").name | Where-Object {$_ -like ($BracketPlayer.player_name + "*")} 
 
