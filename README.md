@@ -98,7 +98,7 @@ For each guild, all data will be stored in a subdirectory with the guild's name:
   - Gear level, Speed and MMScore of each character in the team
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/51beed50-153a-42ef-a8b7-45c857b88935)
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/ce1c549b-0da1-46bb-a74a-0661915184de)
-- History - sDuring the first run of the tool every month, guild summary and team analysis is stored in the History subdirectory prepended by the current year and month so you can track guild progress on a month-over month basis.
+- History - During the first run of the tool every month, guild summary and team analysis is stored in the History subdirectory prepended by the current year and month so you can track guild progress on a month-over month basis.
 
 PREREQUISITES
 =============
