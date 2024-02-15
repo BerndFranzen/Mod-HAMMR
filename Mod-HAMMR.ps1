@@ -4,7 +4,7 @@
 
 #>
 
-# Support Grandivory's Mod optimizer JSON templates to override swgoh.gg meta - mark MMScore with (O)verride
+# Support Grandivory's Mod optimizer JSON templates to override swgoh.gg meta - mark MMScore with (C)ustom
 
 
 # CSS for output table form
@@ -56,16 +56,6 @@ $header = @"
 </style>
 
 "@
-
-<#
-
-Output
-
-Team Summary Guild, avg Speed + MMScore 
-Team Details Guild 
-
-#>
-
 
 function CheckPrerequisites() {
     
@@ -154,6 +144,26 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
     
 }
 
+# Load custom mod configuration from JSON files
+
+$CustomJSONFileList = (Get-Item ".\modsOptimizerTemplate-*.json").Name
+$CustomMetaList = @()
+
+if ($CustomJSONFileList -ne $null) {
+
+    Write-Host "Loading custom templates" -ForegroundColor Green
+
+    ForEach ($CustomJSONFile in $CustomJSONFileList) {
+
+        $CustomMetaList += (Get-Content (".\" + $CustomJSONFile) | ConvertFrom-Json).selectedCharacters
+
+
+    }
+
+    $CustomMetaList = $CustomMetaList | Sort-Object -Property id -Unique
+
+}
+
 $ModTeamObj=[ordered]@{Name="";RawName="";"Power"=0;"Gear"="";"RawGear"="";"Speed"="";"RawSpeed"=0;"RawSpd+"=0;"RawEquippedModCount"=0;"MMScore"=0;"RawMMScore"="";"Mod-Sets"="";"Transmitter"="";"Receiver"="";"Processor"="";"Holo-Array"="";"Data-Bus"="";"Multiplexer"=""}
 $GACOpponentObj=@{"AllyCode"="";"MetaMode"="";"IsGacOpponent"=$false;"GuildName"=""}
 $GACOpponent = New-Object psobject -Property $GACOpponentObj
@@ -202,7 +212,7 @@ ForEach ($Account in $AccountInfo) {
 
         Write-Host "Loading guild data for",$PlayerInfo.guild_name -ForegroundColor Green
 
-        $Dummy = New-Item -Path (".\" + $PlayerInfo.guild_name) -ItemType Directory -Erroraction silentlycontinue
+        $Dummy = New-Item -Path (".\" + $PlayerInfo.guild_name).Replace("?","_").Replace("<","_").Replace(">","_") -ItemType Directory -Erroraction silentlycontinue
 
         $GuildInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/guild-profile/" + $Account.guildid) -SkipHttpErrorCheck  -ErrorAction SilentlyContinue ).Content | ConvertFrom-Json).Data
         
@@ -404,7 +414,7 @@ ForEach ($Account in $FullList) {
 
     If ($Account.IsGacOpponent -eq $true -and $AccountInfo.AllyCode -notcontains $Account.AllyCode) { $OutputSubdir = ".\GAC Opponents\" } else { 
         
-        if ($Account.GuildName -ne $null) {$OutputSubdir = ".\" + $Account.GuildName + "\Member-"} else {$OutputSubdir = ".\"}
+        if ($Account.GuildName -ne $null) {$OutputSubdir = ".\" + $Account.GuildName.Replace("?","_").Replace("<","_").Replace(">","_") + "\Member-"} else {$OutputSubdir = ".\"}
 
     }    
 
@@ -543,7 +553,12 @@ ForEach ($Account in $FullList) {
     
 }   
 
+
+# Output guild summary and guild teams
+
 if ($GuildTeamList -ne $null) {
+
+    $DatePrefix = Get-Date -Format "yy-MM-"
 
     $TeamStatList = $TeamList | Where-Object {$_.IsGuildTeam -like "true"}
 
@@ -551,13 +566,29 @@ if ($GuildTeamList -ne $null) {
 
     ForEach ($Guild in $GuildList) {
 
+        $FileSystemGuild = $Guild.Replace("?","_").Replace("<","_").Replace(">","_")
+
         Write-Host "Building team statistics for",$Guild -ForegroundColor Green
 
         $GuildMemberList = ($FullList |Where-Object {$_.GuildName -eq $Guild}).PlayerName
 
         $GuildInfo = $GuildStats | Where-Object {$GuildMemberList -contains $_.player_name} 
 
-        $GuildInfo | Select-Object -ExcludeProperty "*_*"  | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + $Guild + "</H1>") | Out-File (".\" + $Guild + "\GUILD-Member.htm") -Encoding unicode 
+        $GuildInfo | Select-Object -ExcludeProperty "*_*"  | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + $Guild + "</H1>") | Out-File (".\" + $FileSystemGuild + "\GUILD-Member.htm") -Encoding unicode 
+
+        $Dummy = Get-Item (".\" + $FileSystemGuild + "\History\" + $DatePrefix + "Guild-Member.htm") -ErrorAction SilentlyContinue
+
+        if ($Dummy -eq $null) {
+
+            $Dummy = New-Item -Path (".\" + $FileSystemGuild + "\History") -ItemType Directory -Erroraction silentlycontinue
+
+            $GuildInfo | Select-Object -ExcludeProperty "*_*"  | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + $Guild + "</H1>") | Out-File (".\" + $FileSystemGuild + "\History\" + $DatePRefix + "GUILD-Member.htm") -Encoding unicode 
+
+
+        }
+
+
+
 
         ForEach ($Team in $TeamStatList) {
 
@@ -619,7 +650,18 @@ if ($GuildTeamList -ne $null) {
 
             $TeamHtml = ($TeamSummary | Select-Object -ExcludeProperty raw* | ConvertTo-Html -Title ($Team.TeamName) -Head $header -PreContent ("<H1><Center>" + $Team.TeamName + "</H1>")) + $TeamHtml
 
-            $TeamHtml.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File (".\" + $Guild + "\TEAM-" + $team.teamname + ".htm")  -Encoding unicode -ErrorAction SilentlyContinue
+            $TeamHtml.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File (".\" + $FileSystemGuild + "\TEAM-" + $team.teamname + ".htm")  -Encoding unicode -ErrorAction SilentlyContinue
+
+            $Dummy = Get-Item (".\" + $FileSystemGuild + "\History\" + $DatePrefix + "TEAM-" + $team.teamname + ".htm") -ErrorAction SilentlyContinue
+
+            if ($Dummy -eq $null) {
+
+                $Dummy = New-Item -Path (".\" + $FileSystemGuild + "\History") -ItemType Directory -Erroraction silentlycontinue
+
+                $TeamHtml.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File (".\" + $FileSystemGuild + "\History\" + $DatePrefix + "TEAM-" + $team.teamname + ".htm")  -Encoding unicode -ErrorAction SilentlyContinue
+
+
+            }
 
         }
 
