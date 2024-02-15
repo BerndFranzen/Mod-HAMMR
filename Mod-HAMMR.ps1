@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 24-05c (c)2024 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 24-07 (c)2024 SuperSix/Schattenlegion
 
 #>
 
@@ -60,7 +60,7 @@ $header = @"
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 24-05c (c)2024 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 24-07 (c)2024 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
