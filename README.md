@@ -40,7 +40,6 @@ Additionally, after following the steps above:
 1) In the Config-Accounts.csv set the GuildMode value for your allycode to "true"
 2) In th Config-Teams.csv file se the IsGuildTeam value to "true" for alle teams that you want to have analyzed for your entire guild
 3) Start the script in Microsoft Powershell 6.2.0 or higher.
-
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/c4f8e438-4738-432d-9044-744742f6e815)
 
 What information will you get as a player?
@@ -99,8 +98,7 @@ For each guild, all data will be stored in a subdirectory with the guild's name:
   - Gear level, Speed and MMScore of each character in the team
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/51beed50-153a-42ef-a8b7-45c857b88935)
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/ce1c549b-0da1-46bb-a74a-0661915184de)
-
-During the first run of the tool every month, guild summary and team analysis is stored in the History subdirectory prepended by the current year and month so you can track guild progress on a month-over month basis.
+- History - sDuring the first run of the tool every month, guild summary and team analysis is stored in the History subdirectory prepended by the current year and month so you can track guild progress on a month-over month basis.
 
 PREREQUISITES
 =============
