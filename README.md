@@ -82,7 +82,7 @@ Additionally, several mods only show less than (5) rolls on speed, so I should a
 What additional information will you get as a guild?
 ====================================================
 For each guild, all data will be stored in a subdirectory with the guild's name:
-- Guild-Member - Summary for the entire guild
+- Guild-Members - Summary for the entire guild
   - Name and GM of each player
   - Number of Galactic Legends
   - Average MMScore (calculated over all characters having one or more mods assigned)
@@ -98,6 +98,8 @@ For each guild, all data will be stored in a subdirectory with the guild's name:
   - Gear level, Speed and MMScore of each character in the team
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/51beed50-153a-42ef-a8b7-45c857b88935)
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/ce1c549b-0da1-46bb-a74a-0661915184de)
+- Galactic Legends - Summary of all Galactic Legends that exist within the guild
+![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/23cba134-cd3a-4c83-8220-3e0b9bbe9174)
 - History - During the first run of the tool every month, guild summary and team analysis is stored in the History subdirectory prepended by the current year and month so you can track guild progress on a month-over month basis.
 
 PREREQUISITES
