@@ -1,11 +1,17 @@
 <#
 
-    SWGOH Mod-HAMMR Build 24-07 (c)2024 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 24-10 (c)2024 SuperSix/Schattenlegion
 
 #>
 
-# Support Grandivory's Mod optimizer JSON templates to override swgoh.gg meta - mark MMScore with (C)ustom
+<# 
 
+Planned upcoming features 
+
+- Support Grandivory's Mod optimizer JSON templates to override swgoh.gg meta - mark MMScore with (C)ustom
+
+
+#>
 
 # CSS for output table form
 
@@ -60,7 +66,7 @@ $header = @"
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 24-07 (c)2024 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 24-10 (c)2024 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
@@ -101,6 +107,7 @@ Write-Host "Loading support data" -ForegroundColor Green
 $UnitsList = ((Invoke-WebRequest -Uri http://swgoh.gg/api/characters -ContentType "application/json" ).Content | ConvertFrom-Json)
 $UnitsList | Select-Object Name,Base_id | Sort-Object Name | ConvertTo-Html -Head $header | out-File ".\GAME-NameMapping.htm" -Encoding UTF8
 $OmicronList = (Invoke-WebRequest -Uri http://swgoh.gg/api/abilities).Content | ConvertFrom-Json | Where-Object {$_.is_omicron -eq $true} | Sort-Object character_base_id -Unique
+$GalacticLegendsList = $UnitsList | Where-Object {$_.categories -contains "Galactic Legend"} |Sort-Object -Property Name
 
 # Load and format mod meta data
 
@@ -170,6 +177,7 @@ $GACOpponent = New-Object psobject -Property $GACOpponentObj
 
 $MemberTeamList = @{}
 $GuildTeamList = @{}
+$MemberGalacticLegendList = @{}
 
 $FullList = @()
 
@@ -269,6 +277,7 @@ ForEach ($Account in $FullList) {
     $RosterInfo = (Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers @{"Cache-Control"="no-cache"} -ErrorAction SilentlyContinue).Content | ConvertFrom-Json
 
     $ModRoster=@()
+    $MemberGalacticLegends=@()
     $ModList = $RosterInfo.mods | Where-Object {$_.level -eq 15 -and $_.Rarity -ge 5}
     $ModRosterInfo = $RosterInfo.Units.Data | Where-Object {$_.combat_type -eq 1 -and $_.Level -ge 50} 
 
@@ -308,8 +317,8 @@ ForEach ($Account in $FullList) {
             $EquippedMods = $ModList | Where-Object {$_.character -like $Char.base_id}
             $ModTeam.RawEquippedModCount = $EquippedMods.count
             $RequiredMods = ($MetaList | Where-Object {($_.Character -eq ($Char.name)) -and ($_.Mode -like $ModMetaMode)})
-            $RequiredModSets = $RequiredMods.Sets # .Split().Replace("-"," ").trim() | Sort-Object
-
+            $RequiredModSets = $RequiredMods.Sets 
+            
             if (($RequiredModSets -contains "Offense" -and $EquippedModsets -contains 2) -or ($RequiredModSets -contains "Speed" -and $EquippedModsets -contains 4) -or ($RequiredModSets -contains "Critical Damage" -and $EquippedModsets -contains 6)) {$MMScore += 20}
 
             $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Health"}).count,($EquippedModsets | Where-Object {$_ -eq 1}).Count | Measure-Object -Minimum).Minimum 
@@ -368,7 +377,7 @@ ForEach ($Account in $FullList) {
 
             }
             
-            $ModTeam."Mod-Sets" = $RequiredModSets | Join-String -Separator " / "
+            $ModTeam."Mod-Sets" += $RequiredModSets | Join-String -Separator " / "
 
             $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Tenacity / Tenacity / Tenacity","Tenacity (x3)").Replace("Tenacity / Tenacity","Tenacity (x2)").Replace("Health / Health / Health","Health (x3)").Replace("Health / Health","Health (x2)").Replace("Defense / Defense / Defense","Defense (x3)")
             $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Defense / Defense","Defense (x2)").Replace("Potency / Potency / Potency","Potency (x3)").Replace("Potency / Potency","Potency (x2)")
@@ -389,15 +398,18 @@ ForEach ($Account in $FullList) {
                 $FinalModTeam = ($ModTeam).psobject.copy()
                 $FinalMMScore = $MMScore
 
-            } else {
+            } elseif ($ModMetaMode -like "Relaxed" -and $ModTeam.MMScore -gt $FinalModTeam.MMScore) {
 
-                If (($ModTeam.MMScore) -gt ($FinalModTeam.MMScore)) {
+                $ModTeam.MMScore = [string]$ModTeam.MMScore + " (A)"
+                $FinalModTeam = ($ModTeam).psobject.copy()
+                $FinalMMScore = $MMScore                    
+                
+            } elseif ($ModMetaMode -like "Custom" -and $ModTeam.MMScore -gt $FinalModTeam.MMScore) {
 
-                    $ModTeam.MMScore = [string]$ModTeam.MMScore + " (A)"
-                    $FinalModTeam = ($ModTeam).psobject.copy()
-                    $FinalMMScore = $MMScore
-                    
-                }
+                $ModTeam.MMScore = [string]$ModTeam.MMScore + " (C)"
+                $FinalModTeam = ($ModTeam).psobject.copy()
+                $FinalMMScore = $MMScore
+
             }
 
         }
@@ -408,9 +420,17 @@ ForEach ($Account in $FullList) {
 
         $ModRoster = $ModRoster + $FinalModTeam.psobject.Copy()
 
+        if ($GalacticLegendsList.name -contains $FinalModTeam.name -and $Account.GuildName -ne $null -and $Account.IsGacOpponent -ne $true) {
+
+            $MemberGalacticLegends += $FinalModTeam.psobject.Copy()
+
+        }
+
     }
 
     $ModRoster = $ModRoster | Sort-Object @{Expression="Power"; Descending=$true}
+
+    $MemberGalacticLegendList.($Account.PlayerName)+= $MemberGalacticLegends
 
     If ($Account.IsGacOpponent -eq $true -and $AccountInfo.AllyCode -notcontains $Account.AllyCode) { $OutputSubdir = ".\GAC Opponents\" } else { 
         
@@ -574,19 +594,56 @@ if ($GuildTeamList -ne $null) {
 
         $GuildInfo = $GuildStats | Where-Object {$GuildMemberList -contains $_.player_name} 
 
-        $GuildInfo | Select-Object -ExcludeProperty "*_*"  | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + $Guild + "</H1>") | Out-File (".\" + $FileSystemGuild + "\GUILD-Member.htm") -Encoding unicode 
+        $GuildInfo | Select-Object -ExcludeProperty "*_*"  | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + $Guild + "</H1>") | Out-File (".\" + $FileSystemGuild + "\Guild-Members.htm") -Encoding unicode 
 
-        $Dummy = Get-Item (".\" + $FileSystemGuild + "\History\" + $DatePrefix + "Guild-Member.htm") -ErrorAction SilentlyContinue
+        $Dummy = Get-Item (".\" + $FileSystemGuild + "\History\" + $DatePrefix + "Guild-Members.htm") -ErrorAction SilentlyContinue
 
         if ($Dummy -eq $null) {
 
             $Dummy = New-Item -Path (".\" + $FileSystemGuild + "\History") -ItemType Directory -Erroraction silentlycontinue
 
-            $GuildInfo | Select-Object -ExcludeProperty "*_*"  | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + $Guild + "</H1>") | Out-File (".\" + $FileSystemGuild + "\History\" + $DatePRefix + "GUILD-Member.htm") -Encoding unicode 
+            $GuildInfo | Select-Object -ExcludeProperty "*_*"  | ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + $Guild + "</H1>") | Out-File (".\" + $FileSystemGuild + "\History\" + $DatePRefix + "Guild-Members.htm") -Encoding unicode 
 
 
         }
 
+
+        $GLHTMLOutput = $null
+
+        ForEach ($GalacticLegend in $GalacticLegendsList.name) {
+
+            $GalacticLegendSummaryList = @()
+
+            ForEach ($GuildMember in $GuildMemberList) {
+
+                $GLEntry = ($MemberGalacticLegendList.$GuildMember | Where-Object {$_.Name -eq $GalacticLegend}).psobject.copy() | Select-Object -ExcludeProperty raw*
+
+                if ($GLEntry.Name -eq $GalacticLegend) {
+                    $GLEntry.Name = $GuildMember
+
+                    $GalacticLegendSummaryList += $GLEntry
+                }
+                
+                
+
+            }
+
+            $GLHTMLOutput += $GalacticLegendSummaryList | Sort-Object -Property Gear,Power -Descending| ConvertTo-Html -Head $header -PreContent ("<H1><Center>" + $GalacticLegend + "</H1>")
+          
+
+        }
+
+        $GLHTMLOutput.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)")  | out-file (".\" + $FileSystemGuild + "\Guild-GalacticLegends.htm") -Encoding unicode
+
+        $Dummy = Get-Item (".\" + $FileSystemGuild + "\History\" + $DatePrefix + "Guild-GalacticLegends.htm") -ErrorAction SilentlyContinue
+
+        if ($Dummy -eq $null) {
+
+            $Dummy = New-Item -Path (".\" + $FileSystemGuild + "\History") -ItemType Directory -Erroraction silentlycontinue
+
+            $GLHTMLOutput.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)")  | out-file (".\" + $FileSystemGuild +  "\History\" + $DatePRefix + "Guild-GalacticLegends.htm") -Encoding unicode
+
+        }         
 
 
 
