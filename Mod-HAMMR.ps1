@@ -10,6 +10,10 @@ Planned upcoming features
 
 - Support Grandivory's Mod optimizer JSON templates to override swgoh.gg meta - mark MMScore with (C)ustom
 
+Bugfiex
+
+- no more errors thrawn for new chars that do not have any mod meta
+
 
 #>
 
@@ -180,6 +184,8 @@ $GuildTeamList = @{}
 $MemberGalacticLegendList = @{}
 
 $FullList = @()
+# $GuildStats =@()
+
 
 ForEach ($Account in $AccountInfo) { 
     
@@ -240,7 +246,7 @@ ForEach ($Account in $AccountInfo) {
 
     } else {
 
-        $GuildStats =@{}
+        # $GuildStats =@{}
 
 
     }
@@ -317,6 +323,7 @@ ForEach ($Account in $FullList) {
             $EquippedMods = $ModList | Where-Object {$_.character -like $Char.base_id}
             $ModTeam.RawEquippedModCount = $EquippedMods.count
             $RequiredMods = ($MetaList | Where-Object {($_.Character -eq ($Char.name)) -and ($_.Mode -like $ModMetaMode)})
+
             $RequiredModSets = $RequiredMods.Sets 
             
             if (($RequiredModSets -contains "Offense" -and $EquippedModsets -contains 2) -or ($RequiredModSets -contains "Speed" -and $EquippedModsets -contains 4) -or ($RequiredModSets -contains "Critical Damage" -and $EquippedModsets -contains 6)) {$MMScore += 20}
@@ -327,7 +334,7 @@ ForEach ($Account in $FullList) {
             $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Potency"}).count,($EquippedModsets | Where-Object {$_ -eq 7}).Count | Measure-Object -Minimum).Minimum 
             $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Tenacity"}).count,($EquippedModsets | Where-Object {$_ -eq 8}).Count | Measure-Object -Minimum).Minimum 
 
-            if ($MMScore -lt 30) {$ModTeam."Mod-Sets" = "RED" + $ModTeam."Mod-Sets"}
+            if ($MMScore -lt 30) {$ModTeam."Mod-Sets" = "RED"}
         
             ForEach ($Slot in (1,2,3,4,5,6)) {
                 
@@ -356,7 +363,7 @@ ForEach ($Account in $FullList) {
                         if ($SelectedMod.primary_stat.stat_id -eq 5) {
                         
                             $ModSpeed = ("{0:00}" -f [int]$SelectedMod.primary_stat.display_value)
-                          
+                        
                         } else {
                             
                             $ModSpeed = ("{0:00} " -f [int]($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).display_value) + " (" + ($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).roll + ")"
