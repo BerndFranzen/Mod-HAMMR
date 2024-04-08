@@ -109,7 +109,7 @@ PREREQUISITES
 - Your allycode registered and synched on swgoh.gg
 - Your allycode(s) updated in the CONFIG-Accounts.csv file
 
-MMSCore and MMSpd+
+MMScore and MMSpd+
 ==================
 NOTE: There is no absolute truth in modding, this tool just compares the mods to the current meta. You my find it usefull to mod a character differently for another game mode (JKL for example) or as it takes a different role in the squad that you play it in. This is only a SUGGESTION! But what is NOT NEGOTIATBLE is speed, this why I added MMSpd+ which takes both, the MMScore and the Speed Bonus a character gets through mods and builds the average of it.
 
