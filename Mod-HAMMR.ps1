@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 24-15 (c)2024 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 24-15a (c)2024 SuperSix/Schattenlegion
 
 #>
 
@@ -70,7 +70,7 @@ $header = @"
 function CheckPrerequisites() {
     
     Clear-Host
-    Write-Host "SWGOH Mod-HAMMR Build 24-15 (c)2024 SuperSix/Schatten-Legion" -ForegroundColor Green
+    Write-Host "SWGOH Mod-HAMMR Build 24-15a (c)2024 SuperSix/Schatten-Legion" -ForegroundColor Green
     Write-Host
 
     # Check if all prerequisites are met
@@ -93,7 +93,7 @@ function CheckPrerequisites() {
 
 $ModSetShort = ("","HE","OF","DE","SP","CC","CD","PO","TE")
 $ModSetLong = ("","Health","Offense","Defense","Speed","Critical Chance","Critical Damage","Potency","Tenacity") 
-$OmicronModeList = ("","","","","RD","","","TB","TW","GA","","CQ","","","3v3","5v5")
+$OmicronModeList = ("","","","","RD","","","TB","TW","GA","","CQ","CH","","3v3","5v5")
 $SlotNameList = ("","Transmitter","Receiver","Processor","Holo-Array","Data-Bus","Multiplexer")
 $ModMetaUrlList = ("https://swgoh.gg/stats/mod-meta-report/all/","https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/")
 
@@ -274,7 +274,8 @@ ForEach ($Account in $FullList) {
     $ModRoster=@()
     $MemberGalacticLegends=@()
     $ModList = $RosterInfo.mods | Where-Object {$_.level -eq 15 -and $_.Rarity -ge 5}
-    $ModRosterInfo = $RosterInfo.Units.Data | Where-Object {$_.combat_type -eq 1 -and $_.Level -ge 50} 
+    # $ModRosterInfo = $RosterInfo.Units.Data | Where-Object {($_.combat_type -eq 1) -and ($_.Level -ge 50) }
+    $ModRosterInfo = $RosterInfo.Units.Data | Where-Object {($_.combat_type -eq 1) -and ($_.Level -ge 50) -and ($MetaList.Character -contains $_.name)} 
 
     $ModTeam = New-Object PSObject -Property $ModTeamObj
 
