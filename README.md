@@ -28,6 +28,7 @@ How to start as a single player
 - Mod-HAMMR.ps1
 - Config-Accounts.csv
 - Config-Teams.csv
+- Config-Need4Speed.csv
 3) Replace the allycode in the Config-Accounts.csv file with your allycode and chose if you want the script to check your mods in "Strict" or "Relaxed" mode.
 4) Customize the Config-Teams.csv file if needed so that if reflects that squads as you actually play them and set "Is3v3" to "true" for those line you added for 3v3 GA.
 5) Unblock the PS1 file with "Unblock-File .\Mod-HAMMR.ps1" 
@@ -171,6 +172,11 @@ A: No, that's only required if you're also doing statistics for a partner or wan
 Q: Why does an MMScore of a character drop although I modded according to the recommendations?
 
 A: Because it's Meta and this is constantly changing so you may need to re-mod from time to time.
+
+
+Q: Speed, speed, speed, but what about characters like Merrin that do not take speed from their mods?
+
+A: That's what we implemented "Need4Speed" for, the corresponding config file contains those characters that don't need speed on their mods so having 0 speed on them will not turn down their MMSCore.
 
 
 Q: When I try to run the script on Windows I get an error preventing the execution because it's not signed.
