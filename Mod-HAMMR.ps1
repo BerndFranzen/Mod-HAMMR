@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 24-21 (c)2024 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 24-24 (c)2024 SuperSix/Schattenlegion
 
 #>
 
@@ -8,8 +8,7 @@
 
 Changes
 
-- Members that don't have a single character of a team are filtered in the TEAM-*.htm statistics
-- Allow override for characters that do not require speed on mods (e.g. Jedi Knight Luke in leader slot or Merrin)
+- Support for massively overhauled swgoh.gg website and API
 
 Planned upcoming features 
 
@@ -17,7 +16,11 @@ Planned upcoming features
 
 Bugfixes
 
-- 
+- Errors were thrown when no account to be processed was running in Guild Mode
+
+Knwon Issues
+
+- None
 
 
 #>
@@ -100,9 +103,9 @@ function CheckPrerequisites() {
 $ModSetShort = ("","HE","OF","DE","SP","CC","CD","PO","TE")
 $ModSetLong = ("","Health","Offense","Defense","Speed","Critical Chance","Critical Damage","Potency","Tenacity") 
 $OmicronModeList = ("","","","","RD","","","TB","TW","GA","","CQ","CH","","3v3","5v5")
-$SlotNameList = ("","Transmitter","Receiver","Processor","Holo-Array","Data-Bus","Multiplexer")
+$SlotNameList = ("","","Transmitter","Receiver","Processor","Holo-Array","Data-Bus","Multiplexer")
 $ModMetaUrlList = ("https://swgoh.gg/stats/mod-meta-report/all/","https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/")
-$VersionString = "SWGOH Mod-HAMMR Build 24-21 (c)2024 SuperSix/Schatten-Legion"
+$VersionString = "SWGOH Mod-HAMMR Build 24-24 (c)2024 SuperSix/Schatten-Legion"
 
 CheckPrerequisites
 
@@ -123,18 +126,12 @@ $GalacticLegendsList = $UnitsList | Where-Object {$_.categories -contains "Galac
 
 $MetaListV2 = @{}
 
+
 ForEach ($ModMetaUrl in $ModMetaUrlList)
 
 {
 
-    $RawMetaInfo = (Invoke-WebRequest $ModMetaUrl).Content 
-
-    $RawMetaInfo = $RawMetaInfo -Replace '<div class="collection-char-set collection-char-set[1-8] collection-char-set-max" data-toggle="tooltip" data-title="',''
-    $RawMetaInfo = $RawMetaInfo.Replace("Crit Chance","Critical-Chance")
-    $RawMetaInfo = $RawMetaInfo.Replace("Crit Damage","Critical-Damage")
-    $RawMetaInfo = $RawMetaInfo.Replace("&#x27;","'")
-    $RawMetaInfo = $RawMetaInfo.Replace("&quot;",'"')
-    $RawMetaInfo = $RawMetaInfo.Replace('" data-container="body"></div>','')
+    $RawMetaInfo = (Invoke-WebRequest $ModMetaUrl).Content.Replace('&#34;','"').Replace("&#39;","'").Replace("&amp;","&")
 
     $RawMetaList = (($RawMetaInfo | ConvertFrom-HtmlTable))
 
@@ -148,10 +145,28 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
         $RawMetaList | Add-Member -Name "Mode" -MemberType NoteProperty -Value "Relaxed"
     
     }
-   
+
     ForEach ($RawMetaObject in $RawMetaList) {
 
-        $RawMetaObject.Sets = $RawMetaObject.Sets.Split().Replace("-"," ").trim() | Sort-Object
+
+        $SearchTarget = ($UnitsList | Where-Object {$_.name -like $RawMetaObject.Character}).base_id
+        $SetMetaInfo = $RawMetaInfo.Substring($RawMetaInfo.IndexOf($SearchTarget))
+        $SetMetaInfo = $SetMetaInfo.Substring(0,$SetMetaInfo.IndexOf("</div>`n</div></div>`n</div>"))
+
+        $SetResults = @()
+        
+        $SetResults += ($SetMetaInfo | Select-String "Critical Damage").matches.Value
+        $SetResults += ($SetMetaInfo | Select-String "Speed").matches.Value
+        $SetResults += ($SetMetaInfo | Select-String "Offense").matches.Value
+
+        $SetResults += ($SetMetaInfo | Select-String "Critical Chance" -AllMatches).matches.Value
+        $SetResults += ($SetMetaInfo | Select-String "Defense" -AllMatches).matches.Value
+        $SetResults += ($SetMetaInfo | Select-String "Health" -AllMatches).matches.Value
+        $SetResults += ($SetMetaInfo | Select-String "Potency" -AllMatches).matches.Value
+        $SetResults += ($SetMetaInfo | Select-String "Tenacity" -AllMatches).matches.Value
+        
+        $RawMetaObject.Sets = $SetResults
+
         $RawMetaObject.Receiver = $RawMetaObject.Receiver.Split(" / ") | Sort-Object
         $RawMetaObject.Multiplexer = $RawMetaObject.Multiplexer.Split(" / ") | Sort-Object
         $RawMetaObject."Holo-Array" = $RawMetaObject."Holo-Array".Split(" / ") | Sort-Object
@@ -192,6 +207,7 @@ $GuildTeamList = @{}
 $MemberGalacticLegendList = @{}
 
 $FullList = @()
+$GuildStats = @()
 
 ForEach ($Account in $AccountInfo) { 
     
@@ -262,6 +278,8 @@ $GuildStats | Add-Member -Name "MMScore" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "Spd+" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "MMSpd+" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "GA Rank" -MemberType NoteProperty -Value 0
+
+# Measure-Command {
 
 # Start player analysis
 
@@ -338,19 +356,19 @@ ForEach ($Account in $FullList) {
 
                 if ($MMScore -lt 30) {$ModTeam."Mod-Sets" = "RED" + $ModTeam."Mod-Sets"}
             
-                ForEach ($Slot in (1..6)) {
+                ForEach ($Slot in (2..7)) {
                     
                     $SelectedMod = $EquippedMods | Where-Object {$_.Slot -eq $Slot}
                     $SlotName=$SlotNameList[$Slot]
         
                     switch ($Slot) {
                         
-                        1 { $RequiredPrimaries = "Offense" }
-                        2 { $RequiredPrimaries = $RequiredMods."Receiver" }
-                        3 { $RequiredPrimaries = "Defense" }
-                        4 { $RequiredPrimaries = $RequiredMods."Holo-Array" }
-                        5 { $RequiredPrimaries = $RequiredMods."Data-Bus" }
-                        6 { $RequiredPrimaries = $RequiredMods."Multiplexer" }
+                        2 { $RequiredPrimaries = "Offense" }
+                        3 { $RequiredPrimaries = $RequiredMods."Receiver" }
+                        4 { $RequiredPrimaries = "Defense" }
+                        5 { $RequiredPrimaries = $RequiredMods."Holo-Array" }
+                        6 { $RequiredPrimaries = $RequiredMods."Data-Bus" }
+                        7 { $RequiredPrimaries = $RequiredMods."Multiplexer" }
             
                     }
 
@@ -581,6 +599,7 @@ ForEach ($Account in $FullList) {
     
 }   
 
+# } # Measure-Command
 
 # Output guild summary and guild teams
 
