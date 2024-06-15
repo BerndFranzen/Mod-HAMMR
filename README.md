@@ -188,8 +188,3 @@ Q: I have upgrades my chars but why do the pages still show the old values?
   
 A: swgoh.gg only updates the stats every 24 hours. You can force a manual update once every 24 hours or become a "Patron" at swgoh.gg 
    for a small fee (€3.50/month), which reduces the automatic update intervall to 1 hour and grants you 5 manual refreshes per day.
-
-Q: Can I also grab that data for my entire guild?
-  
-A: Yes, technically, you could add all allycodes to the CONFIG-Accounts.csv but Mod-HAMMR is meant to reflect the individual player's
-   squads. Yet for an overview how far the guild is, I created another tool, so check out  https://github.com/BerndFranzen/SWGOH-Guildstats. 
