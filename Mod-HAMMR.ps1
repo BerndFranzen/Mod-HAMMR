@@ -149,7 +149,7 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
     ForEach ($RawMetaObject in $RawMetaList) {
 
 
-        $SearchTarget = ($UnitsList | Where-Object {$_.name -like $RawMetaObject.Character}).base_id
+        $SearchTarget = '"' + ($UnitsList | Where-Object {$_.name -like $RawMetaObject.Character}).base_id + '"'
         $SetMetaInfo = $RawMetaInfo.Substring($RawMetaInfo.IndexOf($SearchTarget))
         $SetMetaInfo = $SetMetaInfo.Substring(0,$SetMetaInfo.IndexOf("</div>`n</div></div>`n</div>"))
 
