@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 24-26 (c)2024 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 24-27 (c)2024 SuperSix/Schattenlegion
 
 #>
 
@@ -8,9 +8,7 @@
 
 Changes
 
-- Improved accuracy of results by enforcing cache-bypass during all web requests
-- Tested with Powershell 7.4.3
-- Tested with PSParseHTML 1.0.2 
+- Removed dependency from character's display name to avoid issues when names are changed (Snips)
 
 Planned upcoming features 
 
@@ -107,7 +105,7 @@ $ModSetLong = ("","Health","Offense","Defense","Speed","Critical Chance","Critic
 $OmicronModeList = ("","","","","RD","","","TB","TW","GA","","CQ","CH","","3v3","5v5")
 $SlotNameList = ("","","Transmitter","Receiver","Processor","Holo-Array","Data-Bus","Multiplexer")
 $ModMetaUrlList = ("https://swgoh.gg/stats/mod-meta-report/all/","https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/")
-$VersionString = "SWGOH Mod-HAMMR Build 24-26 (c)2024 SuperSix/Schatten-Legion"
+$VersionString = "SWGOH Mod-HAMMR Build 24-27 (c)2024 SuperSix/Schatten-Legion"
 
 CheckPrerequisites
 
@@ -136,11 +134,13 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
     $RawMetaInfo = (Invoke-WebRequest $ModMetaUrl -Headers @{"Cache-Control"="no-cache"}).Content.Replace('&#34;','"').Replace("&#39;","'").Replace("&amp;","&")
 
     $RawMetaList = (($RawMetaInfo | ConvertFrom-HtmlTable))
+    $RawMetaList | Add-Member -Name "base_id" -MemberType NoteProperty -Value ""
 
     If ($ModMetaUrl -like "*guilds_100_gp*") { 
         
         $RawMetaList | Add-Member -Name "Mode" -MemberType NoteProperty -Value "Strict"
-        $MetaCharList = $RawMetaList.Character
+        $MetaCharList = @()
+        # $MetaCharList = $RawMetaList.Character
        
     } else {
         
@@ -152,6 +152,11 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
 
 
         $SearchTarget = '"' + ($UnitsList | Where-Object {$_.name -like $RawMetaObject.Character}).base_id + '"'
+
+        ### Add base_id to $RawMetaObject 
+
+        $RawMetaObject.base_id =($UnitsList | Where-Object {$_.name -like $RawMetaObject.Character}).base_id
+
         $SetMetaInfo = $RawMetaInfo.Substring($RawMetaInfo.IndexOf($SearchTarget))
         $SetMetaInfo = $SetMetaInfo.Substring(0,$SetMetaInfo.IndexOf("</div>`n</div></div>`n</div>"))
 
@@ -174,8 +179,10 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
         $RawMetaObject."Holo-Array" = $RawMetaObject."Holo-Array".Split(" / ") | Sort-Object
         $RawMetaObject."Data-Bus" = $RawMetaObject."Data-Bus".Split(" / ") | Sort-Object
         $RawMetaObjectV2 = @{}
-        $RawMetaObjectV2[$RawMetaObject.Mode] = $RawMetaObject | Select-Object -ExcludeProperty Character,Mode
-        $MetaListV2[($RawMetaObject.Character)] += $RawMetaObjectV2 
+        $RawMetaObjectV2[$RawMetaObject.Mode] = $RawMetaObject | Select-Object -ExcludeProperty Character,Mode,base_id
+        $MetaListV2[($RawMetaObject.base_id)] += $RawMetaObjectV2 
+
+        $MetaCharList += $RawMetaObject.base_id
         
     }
 
@@ -281,6 +288,8 @@ $GuildStats | Add-Member -Name "Spd+" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "MMSpd+" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "GA Rank" -MemberType NoteProperty -Value 0
 
+
+
 # Measure-Command {
 
 # Start player analysis
@@ -304,13 +313,16 @@ ForEach ($Account in $FullList) {
     $ModRoster=@()
     $MemberGalacticLegends=@()
     $ModList = $RosterInfo.mods | Where-Object {$_.level -eq 15 -and $_.Rarity -ge 5}
-    $ModRosterInfo = $RosterInfo.Units.Data | Where-Object {($_.combat_type -eq 1) -and ($_.Level -ge 50) -and ($MetaCharList -contains $_.name)} 
+    $ModRosterInfo = $RosterInfo.Units.Data | Where-Object {($_.combat_type -eq 1) -and ($_.Level -ge 50) -and ($MetaCharList -contains $_.base_id)} 
 
     $ModTeam = New-Object PSObject -Property $ModTeamObj
     
     ForEach ($Char in $ModRosterInfo) {
 
-        $ModTeam.Name = $Char.Name
+        $ModTeam.Name = ($Unitslist | Where-Object {$_.base_id -like $Char.base_id}).Name
+
+
+
         $ModTeam.RawSpeed = $Char.stats.5
         $ModTeam.Speed = "{0:0} ({1:0})" -f $Char.stats.5,$Char.stat_diffs.5 
         $ModTeam."RawSpd+" = $Char.stat_diffs.5
@@ -340,7 +352,7 @@ ForEach ($Account in $FullList) {
             $EquippedModsets = $Char.mod_set_ids
             $EquippedMods = $ModList | Where-Object {$_.character -like $Char.base_id}
             $ModTeam.RawEquippedModCount = $EquippedMods.count
-            $RequiredMods = $MetaListV2[$Char.Name][$ModMetaMode]
+            $RequiredMods = $MetaListV2[$Char.base_id][$ModMetaMode]
 
             if ($RequiredMods -ne $bull) {
 
