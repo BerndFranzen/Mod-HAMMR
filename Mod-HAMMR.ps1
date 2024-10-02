@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 24-27 (c)2024 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 24-40 (c)2024 SuperSix/Schattenlegion
 
 #>
 
@@ -8,11 +8,13 @@
 
 Changes
 
-- Removed dependency from character's display name to avoid issues when names are changed (Snips)
+- Performance improvements
+- Tested with Powershell 7.4.5
 
 Planned upcoming features 
 
 - Support Grandivory's Mod optimizer JSON templates to override swgoh.gg meta - mark MMScore with (C)ustom
+- Export swgoh.gg Mod Meta information for import in Grandivory's Mod optimizer
 
 Bugfixes
 
@@ -105,7 +107,7 @@ $ModSetLong = ("","Health","Offense","Defense","Speed","Critical Chance","Critic
 $OmicronModeList = ("","","","","RD","","","TB","TW","GA","","CQ","CH","","3v3","5v5")
 $SlotNameList = ("","","Transmitter","Receiver","Processor","Holo-Array","Data-Bus","Multiplexer")
 $ModMetaUrlList = ("https://swgoh.gg/stats/mod-meta-report/all/","https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/")
-$VersionString = "SWGOH Mod-HAMMR Build 24-27 (c)2024 SuperSix/Schatten-Legion"
+$VersionString = "SWGOH Mod-HAMMR Build 24-40 (c)2024 SuperSix/Schatten-Legion"
 
 CheckPrerequisites
 
@@ -320,9 +322,6 @@ ForEach ($Account in $FullList) {
     ForEach ($Char in $ModRosterInfo) {
 
         $ModTeam.Name = ($Unitslist | Where-Object {$_.base_id -like $Char.base_id}).Name
-
-
-
         $ModTeam.RawSpeed = $Char.stats.5
         $ModTeam.Speed = "{0:0} ({1:0})" -f $Char.stats.5,$Char.stat_diffs.5 
         $ModTeam."RawSpd+" = $Char.stat_diffs.5
@@ -345,115 +344,120 @@ ForEach ($Account in $FullList) {
         }
 
         $ModTeam.RawGear = $ModTeam.Gear
+        $FinalMMScore = 0;
 
         ForEach($ModMetaMode in $ModMetaModeList) {
 
-            $MMScore = 0
-            $EquippedModsets = $Char.mod_set_ids
-            $EquippedMods = $ModList | Where-Object {$_.character -like $Char.base_id}
-            $ModTeam.RawEquippedModCount = $EquippedMods.count
-            $RequiredMods = $MetaListV2[$Char.base_id][$ModMetaMode]
+            if ($ModMetaMode -eq "Strict" -or $FinalMMScore -lt 100) {
 
-            if ($RequiredMods -ne $bull) {
 
-                $RequiredModSets = $RequiredMods.Sets
+                $MMScore = 0
+                $EquippedModsets = $Char.mod_set_ids
+                $EquippedMods = $ModList | Where-Object {$_.character -eq $Char.base_id}
+                $ModTeam.RawEquippedModCount = $EquippedMods.count
+                $RequiredMods = $MetaListV2[$Char.base_id][$ModMetaMode]
 
-                $ModTeam."Mod-Sets" = $RequiredModSets | Join-String -Separator " / "
-                
-                if (($RequiredModSets -contains "Offense" -and $EquippedModsets -contains 2) -or ($RequiredModSets -contains "Speed" -and $EquippedModsets -contains 4) -or ($RequiredModSets -contains "Critical Damage" -and $EquippedModsets -contains 6)) {$MMScore += 20}
+                if ($RequiredMods -ne $bull) {
 
-                $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Health"}).count,($EquippedModsets | Where-Object {$_ -eq 1}).Count | Measure-Object -Minimum).Minimum 
-                $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Defense"}).count,($EquippedModsets | Where-Object {$_ -eq 3}).Count | Measure-Object -Minimum).Minimum 
-                $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Critical Chance"}).count,($EquippedModsets | Where-Object {$_ -eq 5}).Count | Measure-Object -Minimum).Minimum 
-                $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Potency"}).count,($EquippedModsets | Where-Object {$_ -eq 7}).Count | Measure-Object -Minimum).Minimum 
-                $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Tenacity"}).count,($EquippedModsets | Where-Object {$_ -eq 8}).Count | Measure-Object -Minimum).Minimum 
+                    $RequiredModSets = $RequiredMods.Sets
 
-                if ($MMScore -lt 30) {$ModTeam."Mod-Sets" = "RED" + $ModTeam."Mod-Sets"}
-            
-                ForEach ($Slot in (2..7)) {
+                    $ModTeam."Mod-Sets" = $RequiredModSets | Join-String -Separator " / "
                     
-                    $SelectedMod = $EquippedMods | Where-Object {$_.Slot -eq $Slot}
-                    $SlotName=$SlotNameList[$Slot]
-        
-                    switch ($Slot) {
+                    if (($RequiredModSets -contains "Offense" -and $EquippedModsets -contains 2) -or ($RequiredModSets -contains "Speed" -and $EquippedModsets -contains 4) -or ($RequiredModSets -contains "Critical Damage" -and $EquippedModsets -contains 6)) {$MMScore += 20}
+
+                    $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Health"}).count,($EquippedModsets | Where-Object {$_ -eq 1}).Count | Measure-Object -Minimum).Minimum 
+                    $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Defense"}).count,($EquippedModsets | Where-Object {$_ -eq 3}).Count | Measure-Object -Minimum).Minimum 
+                    $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Critical Chance"}).count,($EquippedModsets | Where-Object {$_ -eq 5}).Count | Measure-Object -Minimum).Minimum 
+                    $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Potency"}).count,($EquippedModsets | Where-Object {$_ -eq 7}).Count | Measure-Object -Minimum).Minimum 
+                    $MMScore += 10 * (($RequiredModSets | Where-Object {$_ -eq "Tenacity"}).count,($EquippedModsets | Where-Object {$_ -eq 8}).Count | Measure-Object -Minimum).Minimum 
+
+                    if ($MMScore -lt 30) {$ModTeam."Mod-Sets" = "RED" + $ModTeam."Mod-Sets"}
+                
+                    ForEach ($Slot in (2..7)) {
                         
-                        2 { $RequiredPrimaries = "Offense" }
-                        3 { $RequiredPrimaries = $RequiredMods."Receiver" }
-                        4 { $RequiredPrimaries = "Defense" }
-                        5 { $RequiredPrimaries = $RequiredMods."Holo-Array" }
-                        6 { $RequiredPrimaries = $RequiredMods."Data-Bus" }
-                        7 { $RequiredPrimaries = $RequiredMods."Multiplexer" }
+                        $SelectedMod = $EquippedMods | Where-Object {$_.Slot -eq $Slot}
+                        $SlotName=$SlotNameList[$Slot]
             
+                        switch ($Slot) {
+                            
+                            2 { $RequiredPrimaries = "Offense" }
+                            3 { $RequiredPrimaries = $RequiredMods."Receiver" }
+                            4 { $RequiredPrimaries = "Defense" }
+                            5 { $RequiredPrimaries = $RequiredMods."Holo-Array" }
+                            6 { $RequiredPrimaries = $RequiredMods."Data-Bus" }
+                            7 { $RequiredPrimaries = $RequiredMods."Multiplexer" }
+                
+                        }
+
+                        if (($RequiredPrimaries -contains $SelectedMod.primary_stat.name) -and ($RequiredModSets -contains $ModSetLong[$SelectedMod.set])) {
+
+                            $MMScore += 5 # Mod primary matches meta
+
+                            if (($SelectedMod.primary_stat.stat_id -eq 5) -or ($SelectedMod.secondary_stats.stat_id -contains 5) -or ($Need4SpeedList.MemberDefId -contains $Char.base_id )) { 
+                                
+                                $MMScore += 5 # Mod has speed on it or is excluded via Need4Speed list
+
+                                if ($SelectedMod.primary_stat.stat_id -eq 5) {
+                                
+                                    $ModSpeed = ("{0:00}" -f [int]$SelectedMod.primary_stat.display_value)
+                                
+                                } elseif ($SelectedMod.secondary_stats.stat_id -contains 5) {
+                                    
+                                    $ModSpeed = ("{0:00} " -f [int]($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).display_value) + " (" + ($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).roll + ")"
+                                    
+                                } else {
+
+                                    $ModSpeed = "00"
+
+                                }
+
+                                $ModTeam.($Slotname) = [string]($ModSpeed + " - " + $ModSetShort[$SelectedMod.set] + " - " +  $SelectedMod.primary_stat.name.Replace("Critical","Crit."))
+
+                                $ModTeam.($Slotname) += ("+" * ($SelectedMod.secondary_stats.name | Where-Object {$_ -like $SelectedMod.primary_stat.name}).count )
+                                $ModTeam.($Slotname) += ("*" * ($SelectedMod.secondary_stats.name | Where-Object {$RequiredModSets -contains $_ -and $_ -notlike "Speed"}).count )
+
+
+                                if ($SelectedMod.rarity -gt 5) {$ModTeam.($Slotname) = "BOLD" + $ModTeam.($Slotname)}
+                                                
+                            } else {$ModTeam.($Slotname) = "REDITALICON" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")} 
+                        } else {$ModTeam.($Slotname) = "REDITALICON" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")}
+
                     }
-
-                    if (($RequiredPrimaries -contains $SelectedMod.primary_stat.name) -and ($RequiredModSets -contains $ModSetLong[$SelectedMod.set])) {
-
-                        $MMScore += 5 # Mod primary matches meta
-
-                        if (($SelectedMod.primary_stat.stat_id -eq 5) -or ($SelectedMod.secondary_stats.stat_id -contains 5) -or ($Need4SpeedList.MemberDefId -contains $Char.base_id )) { 
-                            
-                            $MMScore += 5 # Mod has speed on it or is excluded via Need4Speed list
-
-                            if ($SelectedMod.primary_stat.stat_id -eq 5) {
-                            
-                                $ModSpeed = ("{0:00}" -f [int]$SelectedMod.primary_stat.display_value)
-                            
-                            } elseif ($SelectedMod.secondary_stats.stat_id -contains 5) {
-                                
-                                $ModSpeed = ("{0:00} " -f [int]($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).display_value) + " (" + ($SelectedMod.secondary_stats | Where-Object {$_.Stat_id -eq 5}).roll + ")"
-                                
-                            } else {
-
-                                $ModSpeed = "00"
-
-                            }
-
-                            $ModTeam.($Slotname) = [string]($ModSpeed + " - " + $ModSetShort[$SelectedMod.set] + " - " +  $SelectedMod.primary_stat.name.Replace("Critical","Crit."))
-
-                            $ModTeam.($Slotname) += ("+" * ($SelectedMod.secondary_stats.name | Where-Object {$_ -like $SelectedMod.primary_stat.name}).count )
-                            $ModTeam.($Slotname) += ("*" * ($SelectedMod.secondary_stats.name | Where-Object {$RequiredModSets -contains $_ -and $_ -notlike "Speed"}).count )
-
-
-                            if ($SelectedMod.rarity -gt 5) {$ModTeam.($Slotname) = "BOLD" + $ModTeam.($Slotname)}
-                                            
-                        } else {$ModTeam.($Slotname) = "REDITALICON" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")} 
-                    } else {$ModTeam.($Slotname) = "REDITALICON" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")}
-
-                }
-                
-                $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Tenacity / Tenacity / Tenacity","Tenacity (x3)").Replace("Tenacity / Tenacity","Tenacity (x2)").Replace("Health / Health / Health","Health (x3)").Replace("Health / Health","Health (x2)").Replace("Defense / Defense / Defense","Defense (x3)")
-                $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Defense / Defense","Defense (x2)").Replace("Potency / Potency / Potency","Potency (x3)").Replace("Potency / Potency","Potency (x2)")
-                $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Critical Chance / Critical Chance / Critical Chance","Crit. Chance (x3)").Replace("Critical Chance / Critical Chance","Crit. Chance (x2)").Replace("Critical","Crit.")
-                
-                if ($MMScore -eq 90) {
-                
-                    $MMScore = 100 + ($EquippedMods | Where-Object {$_.rarity -gt 5}).count * 5
-
-                        if ($MMScore -eq 130 -and ($EquippedMods | Where-Object {$_.rarity -gt 5 -and $_.tier -eq 5}).count -eq 6) {$MMScore = 150}
-
-                } 
-
-                $ModTeam.MMScore = $MMScore
-
-                if ($ModMetaMode -like "Strict") { 
                     
-                    $FinalModTeam = ($ModTeam).psobject.copy()
-                    $FinalMMScore = $MMScore
-
-                } elseif ($ModMetaMode -like "Relaxed" -and $ModTeam.MMScore -gt $FinalModTeam.MMScore) {
-
-                    $ModTeam.MMScore = [string]$ModTeam.MMScore + " (A)"
-                    $FinalModTeam = ($ModTeam).psobject.copy()
-                    $FinalMMScore = $MMScore                    
+                    $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Tenacity / Tenacity / Tenacity","Tenacity (x3)").Replace("Tenacity / Tenacity","Tenacity (x2)").Replace("Health / Health / Health","Health (x3)").Replace("Health / Health","Health (x2)").Replace("Defense / Defense / Defense","Defense (x3)")
+                    $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Defense / Defense","Defense (x2)").Replace("Potency / Potency / Potency","Potency (x3)").Replace("Potency / Potency","Potency (x2)")
+                    $ModTeam."Mod-Sets" = $ModTeam."Mod-Sets".Replace("Critical Chance / Critical Chance / Critical Chance","Crit. Chance (x3)").Replace("Critical Chance / Critical Chance","Crit. Chance (x2)").Replace("Critical","Crit.")
                     
-                } elseif ($ModMetaMode -like "Custom" -and $ModTeam.MMScore -gt $FinalModTeam.MMScore) {
+                    if ($MMScore -eq 90) {
+                    
+                        $MMScore = 100 + ($EquippedMods | Where-Object {$_.rarity -gt 5}).count * 5
 
-                    $ModTeam.MMScore = [string]$ModTeam.MMScore + " (C)"
-                    $FinalModTeam = ($ModTeam).psobject.copy()
-                    $FinalMMScore = $MMScore
+                            if ($MMScore -eq 130 -and ($EquippedMods | Where-Object {$_.rarity -gt 5 -and $_.tier -eq 5}).count -eq 6) {$MMScore = 150}
 
+                    } 
+
+                    $ModTeam.MMScore = $MMScore
+
+                    if ($ModMetaMode -like "Strict") { 
+                        
+                        $FinalModTeam = ($ModTeam).psobject.copy()
+                        $FinalMMScore = $MMScore
+
+                    } elseif ($ModMetaMode -like "Relaxed" -and $ModTeam.MMScore -gt $FinalModTeam.MMScore) {
+
+                        $ModTeam.MMScore = [string]$ModTeam.MMScore + " (A)"
+                        $FinalModTeam = ($ModTeam).psobject.copy()
+                        $FinalMMScore = $MMScore                    
+                        
+                    } elseif ($ModMetaMode -like "Custom" -and $ModTeam.MMScore -gt $FinalModTeam.MMScore) {
+
+                        $ModTeam.MMScore = [string]$ModTeam.MMScore + " (C)"
+                        $FinalModTeam = ($ModTeam).psobject.copy()
+                        $FinalMMScore = $MMScore
+
+                    }
                 }
-
+           
             }
 
         }
