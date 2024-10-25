@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 24-40 (c)2024 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 24-43 (c)2024 SuperSix/Schattenlegion
 
 #>
 
@@ -8,8 +8,8 @@
 
 Changes
 
+- Fixed an issue with changed format in swgoh.gg mod meta lists
 - Performance improvements
-- Tested with Powershell 7.4.5
 
 Planned upcoming features 
 
@@ -107,7 +107,7 @@ $ModSetLong = ("","Health","Offense","Defense","Speed","Critical Chance","Critic
 $OmicronModeList = ("","","","","RD","","","TB","TW","GA","","CQ","CH","","3v3","5v5")
 $SlotNameList = ("","","Transmitter","Receiver","Processor","Holo-Array","Data-Bus","Multiplexer")
 $ModMetaUrlList = ("https://swgoh.gg/stats/mod-meta-report/all/","https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/")
-$VersionString = "SWGOH Mod-HAMMR Build 24-40 (c)2024 SuperSix/Schatten-Legion"
+$VersionString = "SWGOH Mod-HAMMR Build 24-43 (c)2024 SuperSix/Schatten-Legion"
 
 CheckPrerequisites
 
@@ -135,6 +135,8 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
 
     $RawMetaInfo = (Invoke-WebRequest $ModMetaUrl -Headers @{"Cache-Control"="no-cache"}).Content.Replace('&#34;','"').Replace("&#39;","'").Replace("&amp;","&")
 
+    While ($RawMetaInfo.IndexOf(" </div>") -gt 0) { $RawMetaInfo = $RawMetaInfo.Replace(" </div>","</div>")}
+
     $RawMetaList = (($RawMetaInfo | ConvertFrom-HtmlTable))
     $RawMetaList | Add-Member -Name "base_id" -MemberType NoteProperty -Value ""
 
@@ -142,8 +144,7 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
         
         $RawMetaList | Add-Member -Name "Mode" -MemberType NoteProperty -Value "Strict"
         $MetaCharList = @()
-        # $MetaCharList = $RawMetaList.Character
-       
+               
     } else {
         
         $RawMetaList | Add-Member -Name "Mode" -MemberType NoteProperty -Value "Relaxed"
@@ -159,9 +160,9 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
 
         $RawMetaObject.base_id =($UnitsList | Where-Object {$_.name -like $RawMetaObject.Character}).base_id
 
-        $SetMetaInfo = $RawMetaInfo.Substring($RawMetaInfo.IndexOf($SearchTarget))
-        $SetMetaInfo = $SetMetaInfo.Substring(0,$SetMetaInfo.IndexOf("</div>`n</div></div>`n</div>"))
-
+        $RawMetaInfo = $RawMetaInfo.Substring($RawMetaInfo.IndexOf($SearchTarget)) 
+        $SetMetaInfo = $RawMetaInfo.Substring(0,$RawMetaInfo.IndexOf("</div>`n</div></div>`n</div>"))
+      
         $SetResults = @()
         
         $SetResults += ($SetMetaInfo | Select-String "Critical Damage").matches.Value
@@ -314,7 +315,7 @@ ForEach ($Account in $FullList) {
 
     $ModRoster=@()
     $MemberGalacticLegends=@()
-    $ModList = $RosterInfo.mods | Where-Object {$_.level -eq 15 -and $_.Rarity -ge 5}
+    $ModList = $RosterInfo.mods | Where-Object {$_.level -eq 15 -and $_.Rarity -ge 5} 
     $ModRosterInfo = $RosterInfo.Units.Data | Where-Object {($_.combat_type -eq 1) -and ($_.Level -ge 50) -and ($MetaCharList -contains $_.base_id)} 
 
     $ModTeam = New-Object PSObject -Property $ModTeamObj
@@ -345,19 +346,18 @@ ForEach ($Account in $FullList) {
 
         $ModTeam.RawGear = $ModTeam.Gear
         $FinalMMScore = 0;
+        $EquippedModsets = $Char.mod_set_ids
+        $EquippedMods = $ModList | Where-Object {$_.character -eq $Char.base_id}
+        $ModTeam.RawEquippedModCount = $EquippedMods.count
 
         ForEach($ModMetaMode in $ModMetaModeList) {
 
             if ($ModMetaMode -eq "Strict" -or $FinalMMScore -lt 100) {
 
-
                 $MMScore = 0
-                $EquippedModsets = $Char.mod_set_ids
-                $EquippedMods = $ModList | Where-Object {$_.character -eq $Char.base_id}
-                $ModTeam.RawEquippedModCount = $EquippedMods.count
                 $RequiredMods = $MetaListV2[$Char.base_id][$ModMetaMode]
 
-                if ($RequiredMods -ne $bull) {
+                if ($RequiredMods -ne $null) {
 
                     $RequiredModSets = $RequiredMods.Sets
 
@@ -497,7 +497,10 @@ ForEach ($Account in $FullList) {
         $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)].MMSCore = [int](($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0}).RawMMScore |Measure-Object -Average).Average
         $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Spd+" = [int](($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0})."RawSpd+" |Measure-Object -Average).Average
 
-        $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."MMSpd+" = [int](((($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0})."RawSpd+" |Measure-Object -Average).Average + (($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0}).RawMMScore |Measure-Object -Average).Average) / 2)
+        # $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."MMSpd+" = [int](((($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0})."RawSpd+" |Measure-Object -Average).Average + (($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0}).RawMMScore |Measure-Object -Average).Average) / 2)
+        
+        $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."MMSpd+" = [int](($GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."MMScore" + $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Spd+") / 2)
+                
         $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."GA Rank" = $RosterInfo.data.league_name + " " + $RosterInfo.data.division_number
     }
 
