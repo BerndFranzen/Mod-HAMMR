@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 24-43 (c)2024 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 25-05 (c)2025 SuperSix/Schattenlegion
 
 #>
 
@@ -8,8 +8,7 @@
 
 Changes
 
-- Fixed an issue with changed format in swgoh.gg mod meta lists
-- Performance improvements
+- None
 
 Planned upcoming features 
 
@@ -49,8 +48,7 @@ $header = @"
 		border: 0px; 
 		font-family: Arial, Helvetica, sans-serif;
         width:100%
-        
-	} 
+    } 
 	
     td {
 		padding: 4px;
@@ -64,8 +62,7 @@ $header = @"
         color: #fff;
         font-size: 11px;
         padding: 10px 15px;
-        vertical-align: middle;
-       
+        vertical-align: middle;   
 	}
 
     tbody tr:nth-child(even) {
@@ -107,7 +104,7 @@ $ModSetLong = ("","Health","Offense","Defense","Speed","Critical Chance","Critic
 $OmicronModeList = ("","","","","RD","","","TB","TW","GA","","CQ","CH","","3v3","5v5")
 $SlotNameList = ("","","Transmitter","Receiver","Processor","Holo-Array","Data-Bus","Multiplexer")
 $ModMetaUrlList = ("https://swgoh.gg/stats/mod-meta-report/all/","https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/")
-$VersionString = "SWGOH Mod-HAMMR Build 24-43 (c)2024 SuperSix/Schatten-Legion"
+$VersionString = "SWGOH Mod-HAMMR Build 25-05 (c)2024 SuperSix/Schatten-Legion"
 
 CheckPrerequisites
 
@@ -128,10 +125,7 @@ $GalacticLegendsList = $UnitsList | Where-Object {$_.categories -contains "Galac
 
 $MetaListV2 = @{}
 
-
-ForEach ($ModMetaUrl in $ModMetaUrlList)
-
-{
+ForEach ($ModMetaUrl in $ModMetaUrlList) {
 
     $RawMetaInfo = (Invoke-WebRequest $ModMetaUrl -Headers @{"Cache-Control"="no-cache"}).Content.Replace('&#34;','"').Replace("&#39;","'").Replace("&amp;","&")
 
@@ -153,13 +147,9 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
 
     ForEach ($RawMetaObject in $RawMetaList) {
 
-
         $SearchTarget = '"' + ($UnitsList | Where-Object {$_.name -like $RawMetaObject.Character}).base_id + '"'
 
-        ### Add base_id to $RawMetaObject 
-
         $RawMetaObject.base_id =($UnitsList | Where-Object {$_.name -like $RawMetaObject.Character}).base_id
-
         $RawMetaInfo = $RawMetaInfo.Substring($RawMetaInfo.IndexOf($SearchTarget)) 
         $SetMetaInfo = $RawMetaInfo.Substring(0,$RawMetaInfo.IndexOf("</div>`n</div></div>`n</div>"))
       
@@ -168,7 +158,6 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
         $SetResults += ($SetMetaInfo | Select-String "Critical Damage").matches.Value
         $SetResults += ($SetMetaInfo | Select-String "Speed").matches.Value
         $SetResults += ($SetMetaInfo | Select-String "Offense").matches.Value
-
         $SetResults += ($SetMetaInfo | Select-String "Critical Chance" -AllMatches).matches.Value
         $SetResults += ($SetMetaInfo | Select-String "Defense" -AllMatches).matches.Value
         $SetResults += ($SetMetaInfo | Select-String "Health" -AllMatches).matches.Value
@@ -188,7 +177,6 @@ ForEach ($ModMetaUrl in $ModMetaUrlList)
         $MetaCharList += $RawMetaObject.base_id
         
     }
-
 }
 
 # Load custom mod configuration from JSON files
@@ -230,7 +218,7 @@ ForEach ($Account in $AccountInfo) {
 
     $Account |Add-Member -Name GuildID -Value $PlayerInfo.guild_id -MemberType NoteProperty
     $Account |Add-Member -Name PlayerName -Value $PlayerInfo.name -MemberType NoteProperty
-    
+     
     $FullList += $Account
     
     if ($GacBracketInfo -ne $null) {
@@ -250,9 +238,7 @@ ForEach ($Account in $AccountInfo) {
             $FullList += $GACOpponent
 
             }
-
         }
-
     }
 
     If ($Account.GuildMode -like "true") {
@@ -276,9 +262,7 @@ ForEach ($Account in $AccountInfo) {
             $FullList += $GACOpponent
 
         }
-
     } 
-
 }
 
 $GuildStats | Add-Member -Name Member -MemberType NoteProperty -Value 0
@@ -290,10 +274,6 @@ $GuildStats | Add-Member -Name "MMScore" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "Spd+" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "MMSpd+" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "GA Rank" -MemberType NoteProperty -Value 0
-
-
-
-# Measure-Command {
 
 # Start player analysis
 
@@ -582,9 +562,7 @@ ForEach ($Account in $FullList) {
                             $TeamName += (" (ITALICON" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + "ITALICOFF)")
 
                         }
-                        
                     }
-                    
                 }
 
                 If ($SquadMemberInfo.has_ultimate -eq $true) { $SquadMember.Gear = "u" + $SquadMember.Gear }
@@ -592,7 +570,6 @@ ForEach ($Account in $FullList) {
                 $Squad += $SquadMember
 
             }
-            
         }
 
         if ($TeamData.Is3v3 -like "true") {
@@ -619,8 +596,6 @@ ForEach ($Account in $FullList) {
     $GuildTeamList[($RosterInfo.data.name)] = $MemberTeamList.psobject.Copy() # only if not gac opponent
     
 }   
-
-# } # Measure-Command
 
 # Output guild summary and guild teams
 
