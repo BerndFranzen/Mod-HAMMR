@@ -48,8 +48,8 @@ What information will you get as a player?
 Basically the tool will drop 3 HTML files with your player name:
 - Chars     - listing all chars that you have and that have been leveled to Lvl 50 or higher
 ![image](https://github.com/user-attachments/assets/df0a12a9-b2ae-4ee7-be80-f00cf3061ce4)
-- Teams     - showing the chars grouped in squads that can match the squads you defined within the game.
-![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/3da2d5a5-4d14-4aaa-8108-47da49c19d4d)
+- Teams     - showing the chars grouped in squads that can match the squads you defined within the game
+![image](https://github.com/user-attachments/assets/de15e6e1-b12d-4a44-82d5-fb16fd6d8bbf)
 - Teams-3v3 - showing you the teams you built for 3v3 GA (if any have been specified)
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/f1308c94-f08b-4082-8a04-f431ebd16162)
 - GAC Oppenents : Once the script detects a new GAC bracket it will load the opponent's data automatically and created the 3 files mentioned above for each opponent in a separate subdirectory "GAC Opponents".
