@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 25-05 (c)2025 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 25-27 (c)2025 SuperSix/Schattenlegion
 
 #>
 
@@ -8,7 +8,12 @@
 
 Changes
 
-- None
+- Added counter for the 3 epic capital ships (Executor, Profundity, Leviathan) in guild summary
+- Partial zetas and omicron are shown and underlined
+- Tested with Powershell 7.5.2
+- Switched from HTTP 1.1 to HTTP 2.0 for improved download performance
+- Added character'S role (attacker, support) etc. to make filterin easier to select teams for certain feats
+- Performance improvements
 
 Planned upcoming features 
 
@@ -104,7 +109,7 @@ $ModSetLong = ("","Health","Offense","Defense","Speed","Critical Chance","Critic
 $OmicronModeList = ("","","","","RD","","","TB","TW","GA","","CQ","CH","","3v3","5v5")
 $SlotNameList = ("","","Transmitter","Receiver","Processor","Holo-Array","Data-Bus","Multiplexer")
 $ModMetaUrlList = ("https://swgoh.gg/stats/mod-meta-report/all/","https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/")
-$VersionString = "SWGOH Mod-HAMMR Build 25-05 (c)2024 SuperSix/Schatten-Legion"
+$VersionString = "SWGOH Mod-HAMMR Build 25-27 (c)2025 SuperSix/Schatten-Legion"
 
 CheckPrerequisites
 
@@ -116,10 +121,21 @@ $AccountInfo | Add-Member -Name "IsGACOpponent" -MemberType NoteProperty -Value 
 
 Write-Host "Loading support data" -ForegroundColor Green
 
-$UnitsList = ((Invoke-WebRequest -Uri http://swgoh.gg/api/characters -ContentType "application/json" -Headers @{"Cache-Control"="no-cache"}).Content | ConvertFrom-Json)
+$UnitsList = ((Invoke-WebRequest -Uri http://swgoh.gg/api/characters -ContentType "application/json" -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0").Content | ConvertFrom-Json)
 $UnitsList | Select-Object Name,Base_id | Sort-Object Name | ConvertTo-Html -Head $header  | out-File ".\GAME-NameMapping.htm" -Encoding UTF8
-$OmicronList = (Invoke-WebRequest -Uri http://swgoh.gg/api/abilities -Headers @{"Cache-Control"="no-cache"}).Content | ConvertFrom-Json | Where-Object {$_.is_omicron -eq $true} | Sort-Object character_base_id -Unique
 $GalacticLegendsList = $UnitsList | Where-Object {$_.categories -contains "Galactic Legend"} |Sort-Object -Property Name
+
+$UnitsHash = @{}
+
+ForEach ($Unit in $UnitsList) {
+
+    $UnitsHash[$Unit.Base_id] = $Unit
+
+}
+
+$OmicronList = (Invoke-WebRequest -Uri http://swgoh.gg/api/abilities -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0").Content | ConvertFrom-Json | Where-Object {$_.is_omicron -eq $true} | Sort-Object character_base_id -Unique
+
+$EpicShipsList = ("CAPITALPROFUNDITY","CAPITALLEVIATHAN","CAPITALEXECUTOR")
 
 # Load and format mod meta data
 
@@ -127,7 +143,7 @@ $MetaListV2 = @{}
 
 ForEach ($ModMetaUrl in $ModMetaUrlList) {
 
-    $RawMetaInfo = (Invoke-WebRequest $ModMetaUrl -Headers @{"Cache-Control"="no-cache"}).Content.Replace('&#34;','"').Replace("&#39;","'").Replace("&amp;","&")
+    $RawMetaInfo = (Invoke-WebRequest $ModMetaUrl -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0").Content.Replace('&#34;','"').Replace("&#39;","'").Replace("&amp;","&")
 
     While ($RawMetaInfo.IndexOf(" </div>") -gt 0) { $RawMetaInfo = $RawMetaInfo.Replace(" </div>","</div>")}
 
@@ -198,7 +214,7 @@ if ($CustomJSONFileList -ne $null) {
 
 }
 
-$ModTeamObj=[ordered]@{Name="";RawName="";"Power"=0;"Gear"="";"RawGear"="";"Speed"="";"RawSpeed"=0;"RawSpd+"=0;"RawEquippedModCount"=0;"MMScore"=0;"RawMMScore"="";"Mod-Sets"="";"Transmitter"="";"Receiver"="";"Processor"="";"Holo-Array"="";"Data-Bus"="";"Multiplexer"=""}
+$ModTeamObj=[ordered]@{Name="";RawName="";"Role"="";"Power"=0;"Gear"="";"RawGear"="";"Speed"="";"RawSpeed"=0;"RawSpd+"=0;"RawEquippedModCount"=0;"MMScore"=0;"RawMMScore"="";"Mod-Sets"="";"Transmitter"="";"Receiver"="";"Processor"="";"Holo-Array"="";"Data-Bus"="";"Multiplexer"=""}
 $GACOpponentObj=@{"AllyCode"="";"MetaMode"="";"IsGacOpponent"=$false;"GuildName"=""}
 $GACOpponent = New-Object psobject -Property $GACOpponentObj
 
@@ -213,8 +229,8 @@ ForEach ($Account in $AccountInfo) {
     
     $GuildAllyCode = $Account.Allycode
 
-    $GacBracketInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode + "/gac-bracket") -Headers @{"Cache-Control"="no-cache"} -SkipHttpErrorCheck -ErrorAction SilentlyContinue).Content | ConvertFrom-Json).data
-    $PlayerInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers @{"Cache-Control"="no-cache"} -SkipHttpErrorCheck -ErrorAction SilentlyContinue).Content | ConvertFrom-Json).data
+    $GacBracketInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode + "/gac-bracket") -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0" -SkipHttpErrorCheck -ErrorAction SilentlyContinue).Content | ConvertFrom-Json).data
+    $PlayerInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0" -SkipHttpErrorCheck -ErrorAction SilentlyContinue).Content | ConvertFrom-Json).data
 
     $Account |Add-Member -Name GuildID -Value $PlayerInfo.guild_id -MemberType NoteProperty
     $Account |Add-Member -Name PlayerName -Value $PlayerInfo.name -MemberType NoteProperty
@@ -247,7 +263,7 @@ ForEach ($Account in $AccountInfo) {
 
         $Dummy = New-Item -Path (".\" + $PlayerInfo.guild_name).Replace("?","_").Replace("<","_").Replace(">","_") -ItemType Directory -Erroraction silentlycontinue
 
-        $GuildInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/guild-profile/" + $Account.guildid) -Headers @{"Cache-Control"="no-cache"} -SkipHttpErrorCheck  -ErrorAction SilentlyContinue ).Content | ConvertFrom-Json).Data
+        $GuildInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/guild-profile/" + $Account.guildid) -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0" -SkipHttpErrorCheck  -ErrorAction SilentlyContinue ).Content | ConvertFrom-Json).Data
         
         $GuildStats += $GuildInfo.members | Select-Object player_name,galactic_power | Sort-Object galactic_power -Descending
 
@@ -270,6 +286,7 @@ $GuildStats | Add-Member -Name "Total GM" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "Char GM" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "Ship GM" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "GLs" -MemberType NoteProperty -Value 0
+$GuildStats | Add-Member -Name "CSs" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "MMScore" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "Spd+" -MemberType NoteProperty -Value 0
 $GuildStats | Add-Member -Name "MMSpd+" -MemberType NoteProperty -Value 0
@@ -278,6 +295,7 @@ $GuildStats | Add-Member -Name "GA Rank" -MemberType NoteProperty -Value 0
 # Start player analysis
 
 ForEach ($Account in $FullList) {
+
     $GuildAllyCode = $Account.Allycode 
     if ($Account.Metamode -like "Strict") { 
         $ModMetaModeList = ("Strict") 
@@ -291,7 +309,7 @@ ForEach ($Account in $FullList) {
 
     If ($Account.IsGACOpponent) { Write-Host " GAC Opponent" -ForegroundColor Blue} else { Write-Host "",$Account.GuildName -ForegroundColor Blue}
 
-    $RosterInfo = (Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers @{"Cache-Control"="no-cache"} -ErrorAction SilentlyContinue).Content | ConvertFrom-Json
+    $RosterInfo = (Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0" -ErrorAction SilentlyContinue).Content | ConvertFrom-Json
 
     $ModRoster=@()
     $MemberGalacticLegends=@()
@@ -302,7 +320,12 @@ ForEach ($Account in $FullList) {
     
     ForEach ($Char in $ModRosterInfo) {
 
-        $ModTeam.Name = ($Unitslist | Where-Object {$_.base_id -like $Char.base_id}).Name
+        $ModTeam.Name = $UnitsHash[$Char.base_id].Name
+        $ModTeam.Role = $UnitsHash[$Char.base_id].Role
+        $Leader = $unitsHash[$Char.base_id].categories | Where-Object {$_ -like "Leader"}
+                
+        if ($Leader -ne $null) { $ModTeam.Role += " / Leader" }     
+    
         $ModTeam.RawSpeed = $Char.stats.5
         $ModTeam.Speed = "{0:0} ({1:0})" -f $Char.stats.5,$Char.stat_diffs.5 
         $ModTeam."RawSpd+" = $Char.stat_diffs.5
@@ -399,8 +422,8 @@ ForEach ($Account in $FullList) {
 
                                 if ($SelectedMod.rarity -gt 5) {$ModTeam.($Slotname) = "BOLD" + $ModTeam.($Slotname)}
                                                 
-                            } else {$ModTeam.($Slotname) = "REDITALICON" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")} 
-                        } else {$ModTeam.($Slotname) = "REDITALICON" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")}
+                            } else {$ModTeam.($Slotname) = "RED" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")} 
+                        } else {$ModTeam.($Slotname) = "RED" + ($RequiredPrimaries | Join-String  -Separator (" / ")).Replace("Critical","Crit.")}
 
                     }
                     
@@ -468,23 +491,18 @@ ForEach ($Account in $FullList) {
     if ($Account.GuildName -ne $null -and $Account.IsGacOpponent -ne $true) {
 
         $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Member" = $RosterInfo.data.Name
-        
         $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Total GM" = '{0:N0}' -f $RosterInfo.data.galactic_power
-        
         $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Char GM" = '{0:N0}' -f $RosterInfo.data.character_galactic_power
         $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Ship GM" = '{0:N0}' -f $RosterInfo.data.ship_galactic_power
         $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)].GLs = ($RosterInfo.units.data | Where-Object {$_.is_galactic_legend -eq $true}).Count
+        $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)].CSs = ($RosterInfo.units.data | Where-Object {$EpicShipsList -contains $_.base_id}).Count
         $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)].MMSCore = [int](($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0}).RawMMScore |Measure-Object -Average).Average
         $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Spd+" = [int](($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0})."RawSpd+" |Measure-Object -Average).Average
-
-        # $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."MMSpd+" = [int](((($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0})."RawSpd+" |Measure-Object -Average).Average + (($ModRoster |Where-Object {$_.RawEquippedModCount -gt 0}).RawMMScore |Measure-Object -Average).Average) / 2)
-        
         $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."MMSpd+" = [int](($GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."MMScore" + $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."Spd+") / 2)
-                
         $GuildStats[$GuildStats.player_name.indexof($Rosterinfo.data.name)]."GA Rank" = $RosterInfo.data.league_name + " " + $RosterInfo.data.division_number
     }
 
-    ($ModRoster | Select-Object -ExcludeProperty Raw* | ConvertTo-Html -PreContent ("<H1> <Center>" + $Rosterinfo.data.name + "</H1>") -Head $header ).Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)").Replace("BREAK","</br>") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Chars.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
+    ($ModRoster | Select-Object -ExcludeProperty Raw* | ConvertTo-Html -PreContent ("<H1> <Center>" + $Rosterinfo.data.name + "</H1>") -Head $header ).Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)").Replace("BREAK","</br>") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Chars.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
 
     # Generating team statistics for all teams defined in CONFIG-Teams.csv
 
@@ -502,9 +520,10 @@ ForEach ($Account in $FullList) {
 
         ForEach ($TeamMember in $MemberDefId) {
 
-            $UnitInfo = $UnitsList | Where-Object {$_.base_id -eq $TeamMember}
-            $MemberDisplayName = ($UnitsList | Where-Object {$_.base_id -eq $TeamMember}).Name
+            $Unitinfo = $UnitsHash[$TeamMember]
 
+            $MemberDisplayName = $Unitinfo.Name 
+                        
             $SquadMember = ($ModRoster | Where-Object {$_.name -like $MemberDisplayName}).PSObject.copy()
 
             if ($SquadMember.name -ne $null) {
@@ -545,7 +564,21 @@ ForEach ($Account in $FullList) {
                     $AppliedZetas = $Zetas | Where-Object {$_.has_zeta_learned -eq $true}
                     $AppliedOmicrons = $Omicrons | Where-Object {$_.has_omicron_learned -eq $true}
 
-                    If (($Zetas.count -eq $AppliedZetas.count) -and ($Zetas -ne $null)) { $SquadMember.Gear = "z" + $SquadMember.Gear }
+                    # If (($Zetas.count -eq $AppliedZetas.count) -and ($AppliedZetas -ne $null)) { $SquadMember.Gear = "z" + $SquadMember.Gear }
+
+                    if ($AppliedZetas -ne $null) {
+
+                        If ($Zetas.count -eq $AppliedZetas.count) { 
+                            
+                            $SquadMember.Gear = "z" + $SquadMember.Gear 
+                        
+                        } else {
+                            
+                            $SquadMember.Gear = "UNDERONzUNDEROFF" + $SquadMember.Gear 
+                            
+                        }
+
+                    }
 
                     if ($AppliedOmicrons -ne $null) {
 
@@ -558,8 +591,10 @@ ForEach ($Account in $FullList) {
 
                         } else {
 
-                            $SquadMember.Name += (" (ITALICON" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + "ITALICOFF)")
-                            $TeamName += (" (ITALICON" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + "ITALICOFF)")
+                            $SquadMember.Gear = "UNDERONoUNDEROFF" + $SquadMember.Gear 
+
+                            $SquadMember.Name += (" (UNDERON" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + "UNDEROFF)")
+                            $TeamName += (" (UNDERON" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + "UNDEROFF)")
 
                         }
                     }
@@ -585,11 +620,11 @@ ForEach ($Account in $FullList) {
         }
     }
 
-    $SquadOutput.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Teams.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
+    $SquadOutput.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("UNDERON","<u>").Replace("UNDEROFF","</u>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Teams.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
 
     If ($SquadOutput3v3 -ne $null) {
 
-        $SquadOutput3v3.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Teams-3v3.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
+        $SquadOutput3v3.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("UNDERON","<u>").Replace("UNDEROFF","</u>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Teams-3v3.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
   
     } 
 
@@ -656,7 +691,7 @@ if ($GuildTeamList -ne $null) {
 
         }
 
-        $GLHTMLOutput.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)")  | out-file (".\" + $FileSystemGuild + "\Guild-GalacticLegends.htm") -Encoding unicode
+        $GLHTMLOutput.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)")  | out-file (".\" + $FileSystemGuild + "\Guild-GalacticLegends.htm") -Encoding unicode
 
         $Dummy = Get-Item (".\" + $FileSystemGuild + "\History\" + $DatePrefix + "Guild-GalacticLegends.htm") -ErrorAction SilentlyContinue
 
@@ -664,7 +699,7 @@ if ($GuildTeamList -ne $null) {
 
             $Dummy = New-Item -Path (".\" + $FileSystemGuild + "\History") -ItemType Directory -Erroraction silentlycontinue
 
-            $GLHTMLOutput.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)")  | out-file (".\" + $FileSystemGuild +  "\History\" + $DatePRefix + "Guild-GalacticLegends.htm") -Encoding unicode
+            $GLHTMLOutput.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)")  | out-file (".\" + $FileSystemGuild +  "\History\" + $DatePRefix + "Guild-GalacticLegends.htm") -Encoding unicode
 
         }         
 
@@ -676,10 +711,8 @@ if ($GuildTeamList -ne $null) {
             $TeamNameList = @()
 
             ForEach ($DefId in ($Team.MemberDefId.Split(","))) {
-
-                $TeamSummaryObj.add(($UnitsList | Where-Object {$_.base_id -like $DefId}  ).name,0)
-                $TeamNameList += ($UnitsList | Where-Object {$_.base_id -like $DefId}).name
-
+                $TeamSummaryObj.add($UnitsHash[$DefId].Name,0)
+                $TeamNameList += ($UnitsHash[$DefId].Name)
             } 
 
             $TeamSummary = @()
@@ -733,7 +766,7 @@ if ($GuildTeamList -ne $null) {
 
             $TeamHtml = ($TeamSummary | Select-Object -ExcludeProperty raw* | ConvertTo-Html -Title ($Team.TeamName) -Head $header  -PreContent ("<H1><Center>" + $Team.TeamName + "</H1>")) + $TeamHtml
 
-            $TeamHtml.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File (".\" + $FileSystemGuild + "\TEAM-" + $team.teamname + ".htm")  -Encoding unicode -ErrorAction SilentlyContinue
+            $TeamHtml.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("UNDERON","<u>").Replace("UNDEROFF","</u>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File (".\" + $FileSystemGuild + "\TEAM-" + $team.teamname + ".htm")  -Encoding unicode -ErrorAction SilentlyContinue
 
             $Dummy = Get-Item (".\" + $FileSystemGuild + "\History\" + $DatePrefix + "TEAM-" + $team.teamname + ".htm") -ErrorAction SilentlyContinue
 
@@ -741,7 +774,7 @@ if ($GuildTeamList -ne $null) {
 
                 $Dummy = New-Item -Path (".\" + $FileSystemGuild + "\History") -ItemType Directory -Erroraction silentlycontinue
 
-                $TeamHtml.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("ITALICON","<i>").Replace("ITALICOFF","</i>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File (".\" + $FileSystemGuild + "\History\" + $DatePrefix + "TEAM-" + $team.teamname + ".htm")  -Encoding unicode -ErrorAction SilentlyContinue
+                $TeamHtml.Replace("<td>BGYELLOW","<td style='background-color:yellow'>").Replace("UNDERON","<u>").Replace("UNDEROFF","</u>").Replace("<td>BGRED","<td style='background-color:lightcoral'>").Replace("<td>BGBLUE","<td style='background-color:skyblue'>").Replace("<td>YELLOW","<td style='color:orange'>").Replace("<td>BLUE","<td style='color:blue'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)") | Out-File (".\" + $FileSystemGuild + "\History\" + $DatePrefix + "TEAM-" + $team.teamname + ".htm")  -Encoding unicode -ErrorAction SilentlyContinue
 
 
             }
