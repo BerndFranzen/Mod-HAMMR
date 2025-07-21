@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 25-27 (c)2025 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 25-30 (c)2025 SuperSix/Schattenlegion
 
 #>
 
@@ -8,12 +8,7 @@
 
 Changes
 
-- Added counter for the 3 epic capital ships (Executor, Profundity, Leviathan) in guild summary
-- Partial zetas and omicron are shown and underlined
-- Tested with Powershell 7.5.2
-- Switched from HTTP 1.1 to HTTP 2.0 for improved download performance
-- Added character'S role (attacker, support) etc. to make filterin easier to select teams for certain feats
-- Performance improvements
+- None
 
 Planned upcoming features 
 
@@ -79,6 +74,13 @@ $header = @"
 
 "@
 
+
+$RequestHeader = @{
+
+ "cache-control"="no-cache"   
+
+}
+
 function CheckPrerequisites() {
     
     Clear-Host
@@ -91,7 +93,6 @@ function CheckPrerequisites() {
     if ((get-Item .\CONFIG-Accounts.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "ERROR - Config file CONFIG-Accounts.csv missing"-ForegroundColor Red; Break}
     if ((get-Item .\CONFIG-Teams.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Teams.csv missing"-ForegroundColor Yellow}
     if ((get-Item .\CONFIG-Need4Speed.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Need4Speed.csv missing"-ForegroundColor Yellow}   
-    if ((Invoke-WebRequest -uri http://swgoh.gg).StatusCode -ne 200) {Write-Host "ERROR - Cannot connect to swgoh.gg" -ForegroundColor Red; Break}
     $ParseModule = Get-Module PSParseHTML -ListAvailable -ErrorAction SilentlyContinue
     If ($ParseModule -eq $null) { Install-Module -Name PSParseHTML -AllowClobber -Force }
 
@@ -109,7 +110,8 @@ $ModSetLong = ("","Health","Offense","Defense","Speed","Critical Chance","Critic
 $OmicronModeList = ("","","","","RD","","","TB","TW","GA","","CQ","CH","","3v3","5v5")
 $SlotNameList = ("","","Transmitter","Receiver","Processor","Holo-Array","Data-Bus","Multiplexer")
 $ModMetaUrlList = ("https://swgoh.gg/stats/mod-meta-report/all/","https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/")
-$VersionString = "SWGOH Mod-HAMMR Build 25-27 (c)2025 SuperSix/Schatten-Legion"
+$RegString = "IngtZ2ctYm90LWFjY2VzcyI9IjMxYTlhIg=="
+$VersionString = "SWGOH Mod-HAMMR Build 25-30 (c)2025 SuperSix/Schatten-Legion"
 
 CheckPrerequisites
 
@@ -121,7 +123,12 @@ $AccountInfo | Add-Member -Name "IsGACOpponent" -MemberType NoteProperty -Value 
 
 Write-Host "Loading support data" -ForegroundColor Green
 
-$UnitsList = ((Invoke-WebRequest -Uri http://swgoh.gg/api/characters -ContentType "application/json" -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0").Content | ConvertFrom-Json)
+$bytes = [Convert]::FromBase64String($RegString);
+$Text = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($RegString))
+$Components=$Text.Replace('"','').Split("=")
+$RequestHeader[$Components[0]]=$Components[1]
+
+$UnitsList = ((Invoke-WebRequest -Uri https://swgoh.gg/api/characters -ContentType "application/json" -Headers $RequestHeader -HttpVersion "2.0").Content | ConvertFrom-Json)
 $UnitsList | Select-Object Name,Base_id | Sort-Object Name | ConvertTo-Html -Head $header  | out-File ".\GAME-NameMapping.htm" -Encoding UTF8
 $GalacticLegendsList = $UnitsList | Where-Object {$_.categories -contains "Galactic Legend"} |Sort-Object -Property Name
 
@@ -133,7 +140,7 @@ ForEach ($Unit in $UnitsList) {
 
 }
 
-$OmicronList = (Invoke-WebRequest -Uri http://swgoh.gg/api/abilities -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0").Content | ConvertFrom-Json | Where-Object {$_.is_omicron -eq $true} | Sort-Object character_base_id -Unique
+$OmicronList = (Invoke-WebRequest -Uri http://swgoh.gg/api/abilities -Headers $RequestHeader -HttpVersion "2.0").Content | ConvertFrom-Json | Where-Object {$_.is_omicron -eq $true} | Sort-Object character_base_id -Unique
 
 $EpicShipsList = ("CAPITALPROFUNDITY","CAPITALLEVIATHAN","CAPITALEXECUTOR")
 
@@ -143,7 +150,7 @@ $MetaListV2 = @{}
 
 ForEach ($ModMetaUrl in $ModMetaUrlList) {
 
-    $RawMetaInfo = (Invoke-WebRequest $ModMetaUrl -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0").Content.Replace('&#34;','"').Replace("&#39;","'").Replace("&amp;","&")
+    $RawMetaInfo = (Invoke-WebRequest $ModMetaUrl -Headers $RequestHeader -HttpVersion "2.0").Content.Replace('&#34;','"').Replace("&#39;","'").Replace("&amp;","&")
 
     While ($RawMetaInfo.IndexOf(" </div>") -gt 0) { $RawMetaInfo = $RawMetaInfo.Replace(" </div>","</div>")}
 
@@ -229,8 +236,8 @@ ForEach ($Account in $AccountInfo) {
     
     $GuildAllyCode = $Account.Allycode
 
-    $GacBracketInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode + "/gac-bracket") -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0" -SkipHttpErrorCheck -ErrorAction SilentlyContinue).Content | ConvertFrom-Json).data
-    $PlayerInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0" -SkipHttpErrorCheck -ErrorAction SilentlyContinue).Content | ConvertFrom-Json).data
+    $GacBracketInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode + "/gac-bracket") -Headers $RequestHeader -HttpVersion "2.0" -SkipHttpErrorCheck -ErrorAction SilentlyContinue).Content | ConvertFrom-Json).data
+    $PlayerInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers $RequestHeader -HttpVersion "2.0" -SkipHttpErrorCheck -ErrorAction SilentlyContinue).Content | ConvertFrom-Json).data
 
     $Account |Add-Member -Name GuildID -Value $PlayerInfo.guild_id -MemberType NoteProperty
     $Account |Add-Member -Name PlayerName -Value $PlayerInfo.name -MemberType NoteProperty
@@ -263,7 +270,7 @@ ForEach ($Account in $AccountInfo) {
 
         $Dummy = New-Item -Path (".\" + $PlayerInfo.guild_name).Replace("?","_").Replace("<","_").Replace(">","_") -ItemType Directory -Erroraction silentlycontinue
 
-        $GuildInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/guild-profile/" + $Account.guildid) -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0" -SkipHttpErrorCheck  -ErrorAction SilentlyContinue ).Content | ConvertFrom-Json).Data
+        $GuildInfo = ((Invoke-WebRequest ("http://swgoh.gg/api/guild-profile/" + $Account.guildid) -Headers $RequestHeader -HttpVersion "2.0" -SkipHttpErrorCheck  -ErrorAction SilentlyContinue ).Content | ConvertFrom-Json).Data
         
         $GuildStats += $GuildInfo.members | Select-Object player_name,galactic_power | Sort-Object galactic_power -Descending
 
@@ -309,7 +316,7 @@ ForEach ($Account in $FullList) {
 
     If ($Account.IsGACOpponent) { Write-Host " GAC Opponent" -ForegroundColor Blue} else { Write-Host "",$Account.GuildName -ForegroundColor Blue}
 
-    $RosterInfo = (Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers @{"Cache-Control"="no-cache"} -HttpVersion "2.0" -ErrorAction SilentlyContinue).Content | ConvertFrom-Json
+    $RosterInfo = (Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers $RequestHeader -HttpVersion "2.0" -ErrorAction SilentlyContinue).Content | ConvertFrom-Json
 
     $ModRoster=@()
     $MemberGalacticLegends=@()
