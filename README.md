@@ -58,7 +58,7 @@ What does that data mean for me?
 =================================
 Let's take the first line from the sample below for a specific team:
 ![image](https://github.com/user-attachments/assets/31f2ebe4-aa9e-47e3-861b-65fc7a9fe5f7)
-- Name          - The ingame name of the character, this may not reflect the name that you see in your localized version of the game but the API cannot return anythin else. In the teams list, if the name is followed by some information in brackets (GA, TB, TW, 3v3, 5v5, RD, CQ, CH) this means, that this char has an Omicron applied for this certain mode. If the Omicron is underlined it means that there are more than 1 Omicron required for that char but at least 1 but not all are applied.
+- Name          - The ingame name of the character, this may not reflect the name that you see in your localized version of the game but the API cannot return anythin else. In the teams list, if the name is followed by some information in brackets (GA, TB, TW, 3v3, 5v5, RD, CQ, CH, DC) this means, that this char has an Omicron applied for this certain mode or you have a Datacron that is explicitly targetig this character. If the Omicron is underlined it means that there are more than 1 Omicron required for that char but at least 1 but not all are applied. 
 - Role          - The role(s) that character has
 - Power         - The total power of this char
 - Gear          - The Gear-level either G01-G13 or R01-R09 for relic chars, prepending u(ltimate), z(eta), o(micron)
