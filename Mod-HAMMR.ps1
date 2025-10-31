@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 25-30 (c)2025 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 25-44 (c)2025 SuperSix/Schattenlegion
 
 #>
 
@@ -97,9 +97,10 @@ function CheckPrerequisites() {
     If ($ParseModule -eq $null) { Install-Module -Name PSParseHTML -AllowClobber -Force }
 
     $GacSubDir = (Get-ChildItem (".\GAC Opponents") -ErrorAction SilentlyContinue).name
-    if ($GacSubDir -eq $null) { $Dummy = New-Item -Path (".\GAC Opponents") -ItemType Directory -Erroraction silentlycontinue }
+    if ($GacSubDir -eq $null) { New-Item -Path (".\GAC Opponents") -ItemType Directory -Erroraction silentlycontinue | Out-Null }
 
 }
+
 
 # MAIN
 
@@ -111,7 +112,7 @@ $OmicronModeList = ("","","","","RD","","","TB","TW","GA","","CQ","CH","","3v3",
 $SlotNameList = ("","","Transmitter","Receiver","Processor","Holo-Array","Data-Bus","Multiplexer")
 $ModMetaUrlList = ("https://swgoh.gg/stats/mod-meta-report/all/","https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/")
 $RegString = "IngtZ2ctYm90LWFjY2VzcyI9IjMxYTlhIg=="
-$VersionString = "SWGOH Mod-HAMMR Build 25-30 (c)2025 SuperSix/Schatten-Legion"
+$VersionString = "SWGOH Mod-HAMMR Build 25-44 (c)2025 SuperSix/Schatten-Legion"
 
 CheckPrerequisites
 
@@ -123,9 +124,7 @@ $AccountInfo | Add-Member -Name "IsGACOpponent" -MemberType NoteProperty -Value 
 
 Write-Host "Loading support data" -ForegroundColor Green
 
-$bytes = [Convert]::FromBase64String($RegString);
-$Text = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($RegString))
-$Components=$Text.Replace('"','').Split("=")
+$Components=([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($RegString))).Replace('"','').Split("=")
 $RequestHeader[$Components[0]]=$Components[1]
 
 $UnitsList = ((Invoke-WebRequest -Uri https://swgoh.gg/api/characters -ContentType "application/json" -Headers $RequestHeader -HttpVersion "2.0").Content | ConvertFrom-Json)
@@ -202,6 +201,14 @@ ForEach ($ModMetaUrl in $ModMetaUrlList) {
     }
 }
 
+# Export Mod Meta to Mod ivory template files
+
+$ModIvoryTemplate = @()
+
+
+
+
+
 # Load custom mod configuration from JSON files
 
 $CustomJSONFileList = (Get-Item ".\modsOptimizerTemplate-*.json").Name
@@ -221,7 +228,7 @@ if ($CustomJSONFileList -ne $null) {
 
 }
 
-$ModTeamObj=[ordered]@{Name="";RawName="";"Role"="";"Power"=0;"Gear"="";"RawGear"="";"Speed"="";"RawSpeed"=0;"RawSpd+"=0;"RawEquippedModCount"=0;"MMScore"=0;"RawMMScore"="";"Mod-Sets"="";"Transmitter"="";"Receiver"="";"Processor"="";"Holo-Array"="";"Data-Bus"="";"Multiplexer"=""}
+$ModTeamObj=[ordered]@{Name="";RawName="";"Role"="";"Power"=0;"Gear"="";"RawGear"="";"Speed"="";"RawSpeed"=0;"RawSpd+"=0;"RawEquippedModCount"=0;"RawHasDCApplied"=$false;"MMScore"=0;"RawMMScore"="";"Mod-Sets"="";"Transmitter"="";"Receiver"="";"Processor"="";"Holo-Array"="";"Data-Bus"="";"Multiplexer"=""}
 $GACOpponentObj=@{"AllyCode"="";"MetaMode"="";"IsGacOpponent"=$false;"GuildName"=""}
 $GACOpponent = New-Object psobject -Property $GACOpponentObj
 
@@ -321,7 +328,8 @@ ForEach ($Account in $FullList) {
     $ModRoster=@()
     $MemberGalacticLegends=@()
     $ModList = $RosterInfo.mods | Where-Object {$_.level -eq 15 -and $_.Rarity -ge 5} 
-    $ModRosterInfo = $RosterInfo.Units.Data | Where-Object {($_.combat_type -eq 1) -and ($_.Level -ge 50) -and ($MetaCharList -contains $_.base_id)} 
+    $ModRosterInfo = $RosterInfo.Units.Data | Where-Object {($_.combat_type -eq 1) -and ($_.Level -ge 50) -and ($MetaCharList -contains $_.base_id)}
+    $DatacronList = $RosterInfo.datacrons.tiers | Where-Object {$_.scope_identifier -eq 2 -or $_.scope_identifier -eq 4} | Where-Object {$Unitslist.name -contains $_.scope_target_name -and $_.ability_id -like "datacron_character_*" } | Sort-Object scope_target_name -Unique
 
     $ModTeam = New-Object PSObject -Property $ModTeamObj
     
@@ -522,6 +530,7 @@ ForEach ($Account in $FullList) {
 
         $TeamName=$TeamData.TeamName
         $MemberDefId=$TeamData.MemberDefId.Split(",")
+        $SquadBooster = @()
 
         $Squad = @()
 
@@ -570,6 +579,8 @@ ForEach ($Account in $FullList) {
                 
                     $AppliedZetas = $Zetas | Where-Object {$_.has_zeta_learned -eq $true}
                     $AppliedOmicrons = $Omicrons | Where-Object {$_.has_omicron_learned -eq $true}
+                    $AppliedDatacrons = $DatacronList | Where-Object {$_.scope_target_name -like $SquadMember.RawName}
+                    
 
                     # If (($Zetas.count -eq $AppliedZetas.count) -and ($AppliedZetas -ne $null)) { $SquadMember.Gear = "z" + $SquadMember.Gear }
 
@@ -594,35 +605,61 @@ ForEach ($Account in $FullList) {
                             $SquadMember.Gear = "o" + $SquadMember.Gear
                             
                             $SquadMember.Name += (" (" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + ")")
-                            $TeamName += (" (" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + ")")
+                            $SquadBooster += @($OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode])
 
                         } else {
 
                             $SquadMember.Gear = "UNDERONoUNDEROFF" + $SquadMember.Gear 
 
                             $SquadMember.Name += (" (UNDERON" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + "UNDEROFF)")
-                            $TeamName += (" (UNDERON" + $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]  + "UNDEROFF)")
-
+                            $SquadBooster += $OmicronModeList[($OmicronList | Where-Object {$_.character_base_id -like $TeamMember }).omicron_mode]
                         }
                     }
+
+ 
+                    if ($AppliedDatacrons -ne $null) {
+
+                        # Underline setzen wenn der Relic Level zu niedrig ist
+                            
+                            $SquadMember.Name += (" (DC)")
+                            $SquadBooster += "DC"
+                            
+                        
+                    }
+
+
                 }
 
                 If ($SquadMemberInfo.has_ultimate -eq $true) { $SquadMember.Gear = "u" + $SquadMember.Gear }
 
+                
                 $Squad += $SquadMember
 
             }
         }
 
+        
+
+        if ($SquadBooster.count -gt 0) {
+
+            $SquadBooster = $SquadBooster | Sort-Object -Unique
+
+            $TeamName += " (" + ($SquadBooster | Join-String -Separator "|") + ")"
+
+
+
+        }   
+
+
         if ($TeamData.Is3v3 -like "true") {
 
-            $SquadOutPut3v3 += ($Squad | Select-Object -ExcludeProperty Raw*) | ConvertTo-Html -Head $header  -PreContent ("<H1><Center>" + ($TeamName.Replace(") (",","))  + " ({0:0}k)" -f (($Squad.power | Measure-Object -Sum ).sum /1000)+ " (" + (($Squad.RawGear | Measure-Object -Minimum ).minimum) + ") </H1>")
+            $SquadOutPut3v3 += ($Squad | Select-Object -ExcludeProperty Raw*) | ConvertTo-Html -Head $header  -PreContent ("<H1><Center>" + $TeamName  + " ({0:0}k)" -f (($Squad.power | Measure-Object -Sum ).sum /1000)+ " (" + (($Squad.RawGear | Measure-Object -Minimum ).minimum) + ") </H1>")
 
         } else {
 
             if ($TeamData.IsGuildTeam -like "true") {$MemberTeamList[($TeamData.TeamName)] = ($Squad.psobject.Copy())}
 
-            $SquadOutPut += ($Squad | Select-Object -ExcludeProperty Raw*) | ConvertTo-Html -Head $header  -PreContent ("<H1><Center>" + ($TeamName.Replace(") (",","))  + " ({0:0}k)" -f (($Squad.power | Measure-Object -Sum ).sum /1000) + " (" + (($Squad.RawGear | Measure-Object -Minimum ).minimum) + ") </H1>")
+            $SquadOutPut += ($Squad | Select-Object -ExcludeProperty Raw*) | ConvertTo-Html -Head $header  -PreContent ("<H1><Center>" + $TeamName  + " ({0:0}k)" -f (($Squad.power | Measure-Object -Sum ).sum /1000) + " (" + (($Squad.RawGear | Measure-Object -Minimum ).minimum) + ") </H1>")
         
         }
     }
