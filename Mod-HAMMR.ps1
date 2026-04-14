@@ -1,6 +1,6 @@
 <#
 
-    SWGOH Mod-HAMMR Build 25-44 (c)2025 SuperSix/Schattenlegion
+    SWGOH Mod-HAMMR Build 26-16 (c)2026 SuperSix/Schattenlegion
 
 #>
 
@@ -8,7 +8,15 @@
 
 Changes
 
-- None
+- Added summary page for all characters in the current raid (Order 66 Raid) grouped by factions
+- Added information on last synch date for each player to verify data freshness
+- 
+- Major code rewrite and performance improvements in loading and processing mod meta data
+- Minor other code optimizations and refactoring
+
+- Tested with Microsoft PowerShell 7.6
+- Bumped minimum prerequisite to Microsoft PowerShell 7
+
 
 Planned upcoming features 
 
@@ -77,7 +85,8 @@ $header = @"
 
 $RequestHeader = @{
 
- "cache-control"="no-cache"   
+ "cache-control"="no-cache"
+ "x-gg-bot-access"="31a9a"
 
 }
 
@@ -89,7 +98,7 @@ function CheckPrerequisites() {
 
     # Check if all prerequisites are met
 
-    if ($PSVersionTable.PSVersion.ToString() -lt "6.2.0") {Write-Host "ERROR - This script requires Powershell 6.2.0 or higher" -ForegroundColor Red; Break}
+    if ($PSVersionTable.PSVersion.Major -lt 7) {Write-Host "ERROR - This script requires Microsoft Powershell 7 or higher" -ForegroundColor Red; Break}
     if ((get-Item .\CONFIG-Accounts.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "ERROR - Config file CONFIG-Accounts.csv missing"-ForegroundColor Red; Break}
     if ((get-Item .\CONFIG-Teams.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Teams.csv missing"-ForegroundColor Yellow}
     if ((get-Item .\CONFIG-Need4Speed.csv -ErrorAction SilentlyContinue) -eq $null) {Write-Host "WARNING - Config file CONFIG-Need4Speed.csv missing"-ForegroundColor Yellow}   
@@ -111,8 +120,12 @@ $ModSetLong = ("","Health","Offense","Defense","Speed","Critical Chance","Critic
 $OmicronModeList = ("","","","","RD","","","TB","TW","GA","","CQ","CH","","3v3","5v5")
 $SlotNameList = ("","","Transmitter","Receiver","Processor","Holo-Array","Data-Bus","Multiplexer")
 $ModMetaUrlList = ("https://swgoh.gg/stats/mod-meta-report/all/","https://swgoh.gg/stats/mod-meta-report/guilds_100_gp/")
-$RegString = "IngtZ2ctYm90LWFjY2VzcyI9IjMxYTlhIg=="
-$VersionString = "SWGOH Mod-HAMMR Build 25-44 (c)2025 SuperSix/Schatten-Legion"
+$VersionString = "SWGOH Mod-HAMMR Build 26-16 (c)2026 SuperSix/Schatten-Legion"
+
+# Define current Raid Name
+
+$CurrentRaidName = "Order 66 Raid"
+$CurrentRaidFactionList = ("Bad Batch", "Empire", "Jedi Vanguard", "Pirate")
 
 CheckPrerequisites
 
@@ -124,12 +137,17 @@ $AccountInfo | Add-Member -Name "IsGACOpponent" -MemberType NoteProperty -Value 
 
 Write-Host "Loading support data" -ForegroundColor Green
 
-$Components=([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($RegString))).Replace('"','').Split("=")
-$RequestHeader[$Components[0]]=$Components[1]
-
 $UnitsList = ((Invoke-WebRequest -Uri https://swgoh.gg/api/characters -ContentType "application/json" -Headers $RequestHeader -HttpVersion "2.0").Content | ConvertFrom-Json)
 $UnitsList | Select-Object Name,Base_id | Sort-Object Name | ConvertTo-Html -Head $header  | out-File ".\GAME-NameMapping.htm" -Encoding UTF8
 $GalacticLegendsList = $UnitsList | Where-Object {$_.categories -contains "Galactic Legend"} |Sort-Object -Property Name
+$RaidUnitsList = $UnitsList | Where-Object {$_.categories -contains $CurrentRaidName}
+$RaidFaction = @{}
+
+ForEach ($Faction in $CurrentRaidFactionList) {
+
+    $RaidFaction[$Faction] = ($RaidUnitsList | Where-Object {$_.categories -contains $Faction}).base_id
+
+}
 
 $UnitsHash = @{}
 
@@ -145,15 +163,22 @@ $EpicShipsList = ("CAPITALPROFUNDITY","CAPITALLEVIATHAN","CAPITALEXECUTOR")
 
 # Load and format mod meta data
 
-$MetaListV2 = @{}
+$MetaHash = @{}
 
 ForEach ($ModMetaUrl in $ModMetaUrlList) {
 
-    $RawMetaInfo = (Invoke-WebRequest $ModMetaUrl -Headers $RequestHeader -HttpVersion "2.0").Content.Replace('&#34;','"').Replace("&#39;","'").Replace("&amp;","&")
+    $RawMetaInfo = (Invoke-WebRequest $ModMetaUrl -Headers $RequestHeader -HttpVersion "2.0").Content | Optimize-HTML    
+    $RawMetaHelperList = $RawMetaInfo.Split('data-unit-def-tooltip-app=')
+    $RawMetaHelperList = $RawMetaHelperList[1..($RawMetaHelperList.count -1)]
+    $RawMetaHelperHash = @{}
 
-    While ($RawMetaInfo.IndexOf(" </div>") -gt 0) { $RawMetaInfo = $RawMetaInfo.Replace(" </div>","</div>")}
+    ForEach ($RawMetaHelperListEntry in $RawMetaHelperList) {
 
-    $RawMetaList = (($RawMetaInfo | ConvertFrom-HtmlTable))
+        $Identifier = $RawMetaHelperListEntry.Split(' ')[0]
+        $RawMetaHelperHash[$Identifier] = $RawMetaHelperListEntry
+    }
+
+    $RawMetaList = (($RawMetaInfo | ConvertFrom-HtmlTable)) | Where-Object {$_.Receiver -ne ""}
     $RawMetaList | Add-Member -Name "base_id" -MemberType NoteProperty -Value ""
 
     If ($ModMetaUrl -like "*guilds_100_gp*") { 
@@ -169,14 +194,12 @@ ForEach ($ModMetaUrl in $ModMetaUrlList) {
 
     ForEach ($RawMetaObject in $RawMetaList) {
 
-        $SearchTarget = '"' + ($UnitsList | Where-Object {$_.name -like $RawMetaObject.Character}).base_id + '"'
-
-        $RawMetaObject.base_id =($UnitsList | Where-Object {$_.name -like $RawMetaObject.Character}).base_id
-        $RawMetaInfo = $RawMetaInfo.Substring($RawMetaInfo.IndexOf($SearchTarget)) 
-        $SetMetaInfo = $RawMetaInfo.Substring(0,$RawMetaInfo.IndexOf("</div>`n</div></div>`n</div>"))
-      
+        $SearchTarget = ($UnitsList | Where-Object {$_.name -like $RawMetaObject.Character}).base_id
+        $RawMetaObject.base_id = $SearchTarget
+        $SetMetaInfo = $RawMetaHelperHash[$SearchTarget].Substring(0,$RawMetaHelperHash[$SearchTarget].IndexOf("</div></div></div></div></div></td>"))  
+    
         $SetResults = @()
-        
+
         $SetResults += ($SetMetaInfo | Select-String "Critical Damage").matches.Value
         $SetResults += ($SetMetaInfo | Select-String "Speed").matches.Value
         $SetResults += ($SetMetaInfo | Select-String "Offense").matches.Value
@@ -184,17 +207,16 @@ ForEach ($ModMetaUrl in $ModMetaUrlList) {
         $SetResults += ($SetMetaInfo | Select-String "Defense" -AllMatches).matches.Value
         $SetResults += ($SetMetaInfo | Select-String "Health" -AllMatches).matches.Value
         $SetResults += ($SetMetaInfo | Select-String "Potency" -AllMatches).matches.Value
-        $SetResults += ($SetMetaInfo | Select-String "Tenacity" -AllMatches).matches.Value
+        $SetResults += ($SetMetaInfo | Select-String "Tenacity" -AllMatches).matches.Value #>
         
         $RawMetaObject.Sets = $SetResults
-
         $RawMetaObject.Receiver = $RawMetaObject.Receiver.Split(" / ") | Sort-Object
         $RawMetaObject.Multiplexer = $RawMetaObject.Multiplexer.Split(" / ") | Sort-Object
         $RawMetaObject."Holo-Array" = $RawMetaObject."Holo-Array".Split(" / ") | Sort-Object
         $RawMetaObject."Data-Bus" = $RawMetaObject."Data-Bus".Split(" / ") | Sort-Object
         $RawMetaObjectV2 = @{}
         $RawMetaObjectV2[$RawMetaObject.Mode] = $RawMetaObject | Select-Object -ExcludeProperty Character,Mode,base_id
-        $MetaListV2[($RawMetaObject.base_id)] += $RawMetaObjectV2 
+        $MetaHash[($RawMetaObject.base_id)] += $RawMetaObjectV2 
 
         $MetaCharList += $RawMetaObject.base_id
         
@@ -204,10 +226,6 @@ ForEach ($ModMetaUrl in $ModMetaUrlList) {
 # Export Mod Meta to Mod ivory template files
 
 $ModIvoryTemplate = @()
-
-
-
-
 
 # Load custom mod configuration from JSON files
 
@@ -228,7 +246,7 @@ if ($CustomJSONFileList -ne $null) {
 
 }
 
-$ModTeamObj=[ordered]@{Name="";RawName="";"Role"="";"Power"=0;"Gear"="";"RawGear"="";"Speed"="";"RawSpeed"=0;"RawSpd+"=0;"RawEquippedModCount"=0;"RawHasDCApplied"=$false;"MMScore"=0;"RawMMScore"="";"Mod-Sets"="";"Transmitter"="";"Receiver"="";"Processor"="";"Holo-Array"="";"Data-Bus"="";"Multiplexer"=""}
+$ModTeamObj=[ordered]@{Name="";RawName="";RawCategories="";"Role"="";"Power"=0;"Gear"="";"RawGear"="";"Speed"="";"RawSpeed"=0;"RawSpd+"=0;"RawEquippedModCount"=0;"MMScore"=0;"RawMMScore"="";"Mod-Sets"="";"Transmitter"="";"Receiver"="";"Processor"="";"Holo-Array"="";"Data-Bus"="";"Multiplexer"=""}
 $GACOpponentObj=@{"AllyCode"="";"MetaMode"="";"IsGacOpponent"=$false;"GuildName"=""}
 $GACOpponent = New-Object psobject -Property $GACOpponentObj
 
@@ -274,6 +292,7 @@ ForEach ($Account in $AccountInfo) {
     If ($Account.GuildMode -like "true") {
 
         Write-Host "Loading guild data for",$PlayerInfo.guild_name -ForegroundColor Green
+        
 
         $Dummy = New-Item -Path (".\" + $PlayerInfo.guild_name).Replace("?","_").Replace("<","_").Replace(">","_") -ItemType Directory -Erroraction silentlycontinue
 
@@ -321,23 +340,41 @@ ForEach ($Account in $FullList) {
 
     Write-Host "Loading player data for",$Account.PlayerName -foregroundcolor green -NoNewline
 
-    If ($Account.IsGACOpponent) { Write-Host " GAC Opponent" -ForegroundColor Blue} else { Write-Host "",$Account.GuildName -ForegroundColor Blue}
+    If ($Account.IsGACOpponent) { Write-Host " GAC Opponent" -ForegroundColor Blue -NoNewline} else { Write-Host "",$Account.GuildName," " -ForegroundColor Blue -NoNewline}
+
+    Write-Host $PlayerInfo.last_updated -ForegroundColor DarkGray
 
     $RosterInfo = (Invoke-WebRequest ("http://swgoh.gg/api/player/" + $GuildAllyCode) -Headers $RequestHeader -HttpVersion "2.0" -ErrorAction SilentlyContinue).Content | ConvertFrom-Json
 
     $ModRoster=@()
     $MemberGalacticLegends=@()
-    $ModList = $RosterInfo.mods | Where-Object {$_.level -eq 15 -and $_.Rarity -ge 5} 
+    $ModList = $RosterInfo.mods | Where-Object {$_.level -eq 15 -and $_.Rarity -ge 5 -and $_.character -ne $null} 
+
+    $ModHash = @{}
+        ForEach ($Mod in $ModList) {
+
+            if (-not $ModHash.ContainsKey($Mod.character)) { 
+                
+                $ModHash[$Mod.character] = @{}
+            
+            } 
+    
+            $ModHash[$Mod.character][($Mod.Slot.ToString())] = $Mod
+    
+        }
+
     $ModRosterInfo = $RosterInfo.Units.Data | Where-Object {($_.combat_type -eq 1) -and ($_.Level -ge 50) -and ($MetaCharList -contains $_.base_id)}
     $DatacronList = $RosterInfo.datacrons.tiers | Where-Object {$_.scope_identifier -eq 2 -or $_.scope_identifier -eq 4} | Where-Object {$Unitslist.name -contains $_.scope_target_name -and $_.ability_id -like "datacron_character_*" } | Sort-Object scope_target_name -Unique
 
     $ModTeam = New-Object PSObject -Property $ModTeamObj
     
+
     ForEach ($Char in $ModRosterInfo) {
 
         $ModTeam.Name = $UnitsHash[$Char.base_id].Name
         $ModTeam.Role = $UnitsHash[$Char.base_id].Role
         $Leader = $unitsHash[$Char.base_id].categories | Where-Object {$_ -like "Leader"}
+        $ModTeam.RawCategories = $UnitsHash[$Char.base_id].categories | Where-Object {$CurrentRaidFactionList -Contains $_ -or $_ -like $CurrentRaidName}
                 
         if ($Leader -ne $null) { $ModTeam.Role += " / Leader" }     
     
@@ -363,9 +400,12 @@ ForEach ($Account in $FullList) {
         }
 
         $ModTeam.RawGear = $ModTeam.Gear
+        $ModTeam.RawName = $ModTeam.Name
+       
         $FinalMMScore = 0;
         $EquippedModsets = $Char.mod_set_ids
-        $EquippedMods = $ModList | Where-Object {$_.character -eq $Char.base_id}
+        $EquippedMods = $ModHash[$Char.base_id]
+
         $ModTeam.RawEquippedModCount = $EquippedMods.count
 
         ForEach($ModMetaMode in $ModMetaModeList) {
@@ -373,7 +413,7 @@ ForEach ($Account in $FullList) {
             if ($ModMetaMode -eq "Strict" -or $FinalMMScore -lt 100) {
 
                 $MMScore = 0
-                $RequiredMods = $MetaListV2[$Char.base_id][$ModMetaMode]
+                $RequiredMods = $MetaHash[$Char.base_id][$ModMetaMode]
 
                 if ($RequiredMods -ne $null) {
 
@@ -393,7 +433,15 @@ ForEach ($Account in $FullList) {
                 
                     ForEach ($Slot in (2..7)) {
                         
-                        $SelectedMod = $EquippedMods | Where-Object {$_.Slot -eq $Slot}
+                        if ($EquippedMods) {
+
+                            $SelectedMod = $EquippedMods[$Slot.ToString()]
+
+                        } else {
+
+                            $SelectedMod = $null
+                        }
+
                         $SlotName=$SlotNameList[$Slot]
             
                         switch ($Slot) {
@@ -448,9 +496,9 @@ ForEach ($Account in $FullList) {
                     
                     if ($MMScore -eq 90) {
                     
-                        $MMScore = 100 + ($EquippedMods | Where-Object {$_.rarity -gt 5}).count * 5
+                        $MMScore = 100 + ($EquippedMods.values | Where-Object {$_.rarity -gt 5}).count * 5
 
-                            if ($MMScore -eq 130 -and ($EquippedMods | Where-Object {$_.rarity -gt 5 -and $_.tier -eq 5}).count -eq 6) {$MMScore = 150}
+                            if ($MMScore -eq 130 -and ($EquippedMods.values | Where-Object {$_.rarity -gt 5 -and $_.tier -eq 5}).count -eq 6) {$MMScore = 150}
 
                     } 
 
@@ -518,6 +566,29 @@ ForEach ($Account in $FullList) {
     }
 
     ($ModRoster | Select-Object -ExcludeProperty Raw* | ConvertTo-Html -PreContent ("<H1> <Center>" + $Rosterinfo.data.name + "</H1>") -Head $header ).Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)").Replace("BREAK","</br>") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Chars.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
+
+    # Create List of Raid Characters
+
+    $RaidModRoster = $ModRoster | Where-Object {$_.RawCategories -contains $CurrentRaidName}
+
+    $RaidHTMLOutput = $null
+
+    ForEach ($RaidFaction in $CurrentRaidFactionList) {
+
+        $FactionModRoster = $RaidModRoster | Where-Object {$_.RawCategories -contains $RaidFaction}
+
+        if ($FactionModRoster.count -gt 0) {
+
+            $RaidHTMLOutput +=  ($FactionModRoster | Select-Object -ExcludeProperty Raw* | ConvertTo-Html  -PreContent ("<H1><Center>" + $RaidFaction + "</H1>") -Head $header ).Replace("<td>RED","<td style='color:red'>").Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)").Replace("BREAK","</br>")
+
+        }
+
+    }
+
+     # ($RaidModRoster | Select-Object -ExcludeProperty Raw* | ConvertTo-Html -PreContent ("<H1> <Center>" + $CurrentRaidName + "</H1>") -Head $header ).Replace("<td>RED","<td style='color:red'>").Replace("BOLD","<b>").Replace("STRIKE","<s>").Replace("Transmitter","Transmitter</br>(Square)").Replace("Receiver","Receiver</br>(Arrow)").Replace("Processor","Processor</br>(Diamond)").Replace("Holo-Array","Holo-Array</br>(Triangle)").Replace("Data-Bus","Data-Bus</br>(Circle)").Replace("Multiplexer","Multiplexer</br>(Cross)").Replace("BREAK","</br>") | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Raid.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
+
+    $RaidHTMLOutput | Out-File ($OutputSubdir + $RosterInfo.data.Name + "-Raid.htm" ) -Encoding unicode -ErrorAction SilentlyContinue
+
 
     # Generating team statistics for all teams defined in CONFIG-Teams.csv
 
@@ -678,6 +749,8 @@ ForEach ($Account in $FullList) {
 
 # Output guild summary and guild teams
 
+
+
 if ($GuildTeamList -ne $null) {
 
     $DatePrefix = Get-Date -Format "yy-MM-"
@@ -824,6 +897,7 @@ if ($GuildTeamList -ne $null) {
             }
 
         }
+
 
     }
 
