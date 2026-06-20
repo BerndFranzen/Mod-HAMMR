@@ -23,7 +23,7 @@ This is where Mod-HAMMR (How Are My Mods Really) my be helpful to you. This tool
 
 How to start as a single player
 ===============================
-1) Make sure, you have Powershell 6.20 or higher installed (Windows, Mac, Linux) (https://aka.ms/PSWindows)
+1) Make sure, you have Microsoft Powershell 7.00 or higher installed (Windows, Mac, Linux) (https://aka.ms/PSWindows)
 2) Download these 3 files to your Windows/Mac/Linux machine:
 - Mod-HAMMR.ps1
 - Config-Accounts.csv
@@ -32,7 +32,7 @@ How to start as a single player
 3) Replace the allycode in the Config-Accounts.csv file with your allycode and chose if you want the script to check your mods in "Strict" or "Relaxed" mode.
 4) Customize the Config-Teams.csv file if needed so that if reflects that squads as you actually play them and set "Is3v3" to "true" for those line you added for 3v3 GA.
 5) Unblock the PS1 file with "Unblock-File .\Mod-HAMMR.ps1" 
-6) Start the script in Microsoft Powershell 6.2.0 or higher.
+6) Start the script in Microsoft Powershell 7.00 or higher.
 ![image](https://github.com/BerndFranzen/Mod-HAMMR/assets/97521655/85dedaec-a6ea-490a-bba0-d48b3292a4d5)
 
 How to start as a guild
@@ -104,7 +104,7 @@ For each guild, all data will be stored in a subdirectory with the guild's name:
 
 PREREQUISITES
 =============
-- Microsoft Powershell 6.2.0 or higher (Windows, Mac, Linux) (https://aka.ms/PSWindows)
+- Microsoft Powershell 7.0.0 or higher (Windows, Mac, Linux) (https://aka.ms/PSWindows)
 - PSParseHTML Powershell Module (by EvotecIT), installed automatically if not present 
 - Your allycode registered and synched on swgoh.gg
 - Your allycode(s) updated in the CONFIG-Accounts.csv file
